@@ -1,0 +1,71 @@
+package com.armanmaurya.internetradio.data.remote
+
+import com.armanmaurya.internetradio.data.remote.dto.CountryDto
+import com.armanmaurya.internetradio.data.remote.dto.LanguageDto
+import com.armanmaurya.internetradio.data.remote.dto.StationDto
+import retrofit2.http.GET
+import retrofit2.http.Path
+import retrofit2.http.Query
+
+interface RadioBrowserApi {
+
+    @GET("json/countries")
+    suspend fun getCountries(): List<CountryDto>
+
+    @GET("json/languages")
+    suspend fun getLanguages(
+        @Query("order") order: String = "name",
+        @Query("reverse") reverse: Boolean = false,
+        @Query("hidebroken") hideBroken: Boolean = false,
+        @Query("offset") offset: Int = 0,
+        @Query("limit") limit: Int = 100000,
+    ): List<LanguageDto>
+
+    @GET("json/languages/{filter}")
+    suspend fun getLanguagesFiltered(
+        @Path("filter") filter: String,
+        @Query("order") order: String = "name",
+        @Query("reverse") reverse: Boolean = false,
+        @Query("hidebroken") hideBroken: Boolean = false,
+        @Query("offset") offset: Int = 0,
+        @Query("limit") limit: Int = 100000,
+    ): List<LanguageDto>
+
+    @GET("json/stations/search")
+    suspend fun advancedSearch(
+        @Query("name") name: String? = null,
+        @Query("nameExact") nameExact: Boolean? = null,
+        @Query("country") country: String? = null,
+        @Query("countryExact") countryExact: Boolean? = null,
+        @Query("countrycode") countryCode: String? = null,
+        @Query("state") state: String? = null,
+        @Query("stateExact") stateExact: Boolean? = null,
+        @Query("language") language: String? = null,
+        @Query("languageExact") languageExact: Boolean? = null,
+        @Query("tag") tag: String? = null,
+        @Query("tagExact") tagExact: Boolean? = null,
+        @Query("tagList") tagList: String? = null,
+        @Query("codec") codec: String? = null,
+        @Query("bitrateMin") bitrateMin: Int? = null,
+        @Query("bitrateMax") bitrateMax: Int? = null,
+        @Query("has_geo_info") hasGeoInfo: Boolean? = null,
+        @Query("has_extended_info") hasExtendedInfo: Boolean? = null,
+        @Query("is_https") isHttps: Boolean? = null,
+        @Query("order") order: String? = null,
+        @Query("reverse") reverse: Boolean? = null,
+        @Query("offset") offset: Int? = null,
+        @Query("limit") limit: Int? = null,
+        @Query("hidebroken") hideBroken: Boolean? = null,
+    ): List<StationDto>
+
+    @GET("json/url/{stationuuid}")
+    suspend fun clickStation(
+        @retrofit2.http.Path("stationuuid") stationUuid: String,
+    ): StationClickResponse
+}
+
+data class StationClickResponse(
+    val ok: Boolean,
+    val message: String,
+    val url: String,
+)

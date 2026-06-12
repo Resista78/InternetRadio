@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">Internet Radio</string>
+    <string name="settings_title">Settings</string>
+    <string name="settings_appearance_section">Appearance</string>
+    <string name="settings_dynamic_theme_title">Dynamic Color</string>
+    <string name="settings_dynamic_theme_subtitle">Use wallpaper-based colors (Android 12+)</string>
+    <string name="settings_theme_title">Theme</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_dark">Dark</string>
+    <string name="settings_theme_system">System Default</string>
+    <string name="settings_pure_black_title">Pure Black</string>
+    <string name="settings_pure_black_subtitle">Use pure black background in dark mode</string>
+    <string name="settings_general_section">General</string>
+    <string name="settings_language_title">Language</string>
+    <string name="settings_about_section">About</string>
+    <string name="settings_rate_review">Rate &amp; Review</string>
+    <string name="settings_about_us">About Us</string>
+</resources>
