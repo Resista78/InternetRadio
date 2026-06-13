@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -31,6 +32,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
 import coil3.compose.AsyncImage
+import com.armanmaurya.internetradio.R
 import com.armanmaurya.internetradio.player.PlaybackState
 import kotlin.math.roundToInt
 
@@ -108,7 +110,9 @@ fun PlayerSheetContent(
                 .size(currentSize)
                 .graphicsLayer { rotationZ = rotation }
                 .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.surfaceVariant)
+                .background(MaterialTheme.colorScheme.surfaceVariant),
+            error = painterResource(id = R.drawable.ic_launcher_foreground),
+            fallback = painterResource(id = R.drawable.ic_launcher_foreground)
         )
 
         // --- Mini Content (Fades out as we expand) ---
@@ -178,6 +182,7 @@ fun PlayerSheetContent(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = 24.dp)
+                    .windowInsetsPadding(WindowInsets.navigationBars)
                     .alpha((progress - 0.2f).coerceIn(0f, 0.8f) * 1.25f),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {

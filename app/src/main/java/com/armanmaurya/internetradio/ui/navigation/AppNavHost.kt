@@ -13,6 +13,7 @@ import com.armanmaurya.internetradio.ui.screens.country.LanguageSelectScreen
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.armanmaurya.internetradio.ui.screens.discover.DiscoverViewModel
 import com.armanmaurya.internetradio.ui.screens.settings.SettingsScreen
+import com.armanmaurya.internetradio.ui.screens.settings.AboutScreen
 import androidx.navigation.navArgument
 import androidx.navigation.NavType
 
@@ -75,7 +76,12 @@ fun AppNavHost(
         composable(AppDestination.Settings.route) {
             SettingsScreen(
                 onBackClick = { navController.popBackStack() },
-                onAboutClick = { /* Handle about click if needed */ }
+                onAboutClick = { navController.navigate(AppDestination.About.route) }
+            )
+        }
+        composable(AppDestination.About.route) {
+            AboutScreen(
+                onBackClick = { navController.popBackStack() }
             )
         }
         composable(

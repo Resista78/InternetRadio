@@ -6,13 +6,17 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberStandardBottomSheetState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -60,8 +64,23 @@ class MainActivity : ComponentActivity() {
                     )
                 )
 
+                // Handle Swipe to Dismiss (Stop playback when swiped away)
+                LaunchedEffect(scaffoldState.bottomSheetState.currentValue) {
+                    if (scaffoldState.bottomSheetState.currentValue == SheetValue.Hidden && playbackState.currentStation != null) {
+                        playerViewModel.stop()
+                    }
+                }
+
+                // Handle Re-appearing (Show player when a station starts playing)
+                LaunchedEffect(playbackState.currentStation) {
+                    if (playbackState.currentStation != null && scaffoldState.bottomSheetState.currentValue == SheetValue.Hidden) {
+                        scaffoldState.bottomSheetState.partialExpand()
+                    }
+                }
+
                 val density = LocalDensity.current
-                val sheetPeekHeight = if (playbackState.currentStation != null) 72.dp else 0.dp
+                val bottomInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+                val sheetPeekHeight = if (playbackState.currentStation != null) 72.dp + bottomInset else 0.dp
 
                 BottomSheetScaffold(
                     scaffoldState = scaffoldState,
@@ -71,10 +90,10 @@ class MainActivity : ComponentActivity() {
                         BoxWithConstraints(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .heightIn(min = 72.dp)
+                                .heightIn(min = 72.dp + bottomInset)
                         ) {
                             val fullHeight = constraints.maxHeight.toFloat()
-                            val peekHeightPx = with(density) { 72.dp.toPx() }
+                            val peekHeightPx = with(density) { (72.dp + bottomInset).toPx() }
                             
                             val progress by remember(fullHeight, peekHeightPx) {
                                 derivedStateOf {

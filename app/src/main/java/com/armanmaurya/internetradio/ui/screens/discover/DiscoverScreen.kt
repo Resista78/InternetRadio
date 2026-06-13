@@ -129,7 +129,7 @@ fun DiscoverScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable {
-                                    playerViewModel.play(station)
+                                    viewModel.onSearchQueryChange(station.name)
                                     viewModel.onSearchExpandedChange(false)
                                 }
                         )
