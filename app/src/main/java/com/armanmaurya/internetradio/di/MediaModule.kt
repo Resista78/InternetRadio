@@ -22,14 +22,4 @@ object MediaModule {
         .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
         .setUsage(C.USAGE_MEDIA)
         .build()
-
-    @Provides
-    @Singleton
-    fun providePlayer(
-        @ApplicationContext context: Context,
-        audioAttributes: AudioAttributes
-    ): Player = ExoPlayer.Builder(context)
-        .setAudioAttributes(audioAttributes, true)
-        .setHandleAudioBecomingNoisy(true)
-        .build()
 }

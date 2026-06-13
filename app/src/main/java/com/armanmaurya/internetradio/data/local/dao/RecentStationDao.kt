@@ -12,6 +12,9 @@ interface RecentStationDao {
     @Query("SELECT * FROM recent_stations ORDER BY lastPlayedAt DESC LIMIT 50")
     fun getAllRecent(): Flow<List<RecentStationEntity>>
 
+    @Query("SELECT * FROM recent_stations WHERE stationUuid = :stationUuid LIMIT 1")
+    suspend fun getStationById(stationUuid: String): RecentStationEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertOrUpdate(station: RecentStationEntity)
 

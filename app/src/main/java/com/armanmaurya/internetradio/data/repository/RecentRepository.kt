@@ -18,6 +18,10 @@ class RecentRepository @Inject constructor(
             entities.map { it.toDomain() }
         }
 
+    suspend fun getStationById(stationUuid: String): RadioStation? {
+        return recentStationDao.getStationById(stationUuid)?.toDomain()
+    }
+
     suspend fun addRecentStation(station: RadioStation) {
         recentStationDao.insertOrUpdate(station.toRecentEntity())
     }

@@ -1,7 +1,9 @@
 package com.armanmaurya.internetradio.player
 
 import android.content.Intent
+import androidx.media3.common.AudioAttributes
 import androidx.media3.common.Player
+import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import dagger.hilt.android.AndroidEntryPoint
@@ -11,13 +13,21 @@ import javax.inject.Inject
 class PlaybackService : MediaSessionService() {
 
     @Inject
-    lateinit var player: Player
+    lateinit var audioAttributes: AudioAttributes
 
+    private var player: Player? = null
     private var mediaSession: MediaSession? = null
 
     override fun onCreate() {
         super.onCreate()
-        mediaSession = MediaSession.Builder(this, player).build()
+        player = ExoPlayer.Builder(this)
+            .setAudioAttributes(audioAttributes, true)
+            .setHandleAudioBecomingNoisy(true)
+            .build()
+        
+        player?.let {
+            mediaSession = MediaSession.Builder(this, it).build()
+        }
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? {
@@ -28,13 +38,14 @@ class PlaybackService : MediaSessionService() {
         mediaSession?.run {
             player.release()
             release()
-            mediaSession = null
         }
+        mediaSession = null
+        player = null
         super.onDestroy()
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
-        val player = mediaSession?.player
+        val player = player
         if (player != null) {
             if (!player.playWhenReady || player.mediaItemCount == 0) {
                 stopSelf()
