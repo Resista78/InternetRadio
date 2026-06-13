@@ -16,6 +16,5 @@
 # debugging stack traces.
 #-keepattributes SourceFile,LineNumberTable
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# Keep data transfer objects for Gson to prevent obfuscation of field names
+-keep class com.armanmaurya.internetradio.data.remote.dto.** { *; }
