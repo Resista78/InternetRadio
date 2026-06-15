@@ -22,6 +22,7 @@ data class DiscoverUiState(
     val error: String? = null,
     val selectedCountryCode: String? = null,
     val selectedLanguage: String? = null,
+    val selectedTags: Set<String> = emptySet(),
     val order: String = "votes",
     val reverse: Boolean = true,
 )
@@ -51,6 +52,7 @@ class DiscoverViewModel @Inject constructor(
                     it.copy(
                         selectedCountryCode = preferences.selectedCountryCode,
                         selectedLanguage = preferences.selectedLanguage,
+                        selectedTags = preferences.selectedTags,
                         order = preferences.order,
                         reverse = preferences.reverse
                     )
@@ -58,7 +60,11 @@ class DiscoverViewModel @Inject constructor(
                 if (preferences.selectedCountryCode == null) {
                     detectCountryIfNeeded()
                 } else {
-                    loadStations(preferences.selectedCountryCode, preferences.selectedLanguage)
+                    loadStations(
+                        countryCode = preferences.selectedCountryCode, 
+                        language = preferences.selectedLanguage,
+                        tags = preferences.selectedTags
+                    )
                 }
             }
             .launchIn(viewModelScope)
@@ -105,7 +111,23 @@ class DiscoverViewModel @Inject constructor(
         reloadStations()
     }
 
-    private fun loadStations(countryCode: String?, language: String? = _uiState.value.selectedLanguage) {
+    fun updateTags(tags: Set<String>) {
+        if (_uiState.value.selectedTags == tags) return
+        
+        _uiState.update { it.copy(selectedTags = tags) }
+        
+        viewModelScope.launch {
+            settingsRepository.setSelectedTags(tags)
+        }
+        
+        reloadStations()
+    }
+
+    private fun loadStations(
+        countryCode: String?, 
+        language: String? = _uiState.value.selectedLanguage,
+        tags: Set<String> = _uiState.value.selectedTags
+    ) {
         viewModelScope.launch {
             currentOffset = 0
             _uiState.update { 
@@ -114,6 +136,7 @@ class DiscoverViewModel @Inject constructor(
                     error = null, 
                     selectedCountryCode = countryCode,
                     selectedLanguage = language,
+                    selectedTags = tags,
                     canLoadMore = true
                 ) 
             }
@@ -121,6 +144,7 @@ class DiscoverViewModel @Inject constructor(
             val result = repository.filterStations(
                 countryCode = countryCode?.takeIf { it.isNotBlank() },
                 language = language?.takeIf { it.isNotBlank() },
+                tagList = tags.joinToString(",").takeIf { it.isNotBlank() },
                 order = if (state.searchQuery.isBlank()) "clickcount" else state.order,
                 reverse = state.reverse,
                 limit = pageSize,
@@ -148,6 +172,7 @@ class DiscoverViewModel @Inject constructor(
                 repository.filterStations(
                     countryCode = state.selectedCountryCode?.takeIf { it.isNotBlank() },
                     language = state.selectedLanguage?.takeIf { it.isNotBlank() },
+                    tagList = state.selectedTags.joinToString(",").takeIf { it.isNotBlank() },
                     order = if (state.searchQuery.isBlank()) "clickcount" else state.order,
                     reverse = state.reverse,
                     limit = pageSize,
@@ -157,6 +182,7 @@ class DiscoverViewModel @Inject constructor(
                 repository.filterStations(
                     name = state.searchQuery,
                     language = state.selectedLanguage?.takeIf { it.isNotBlank() },
+                    tagList = state.selectedTags.joinToString(",").takeIf { it.isNotBlank() },
                     order = state.order,
                     reverse = state.reverse,
                     limit = pageSize,
@@ -203,6 +229,7 @@ class DiscoverViewModel @Inject constructor(
             repository.filterStations(
                 name = query,
                 language = state.selectedLanguage?.takeIf { it.isNotBlank() },
+                tagList = state.selectedTags.joinToString(",").takeIf { it.isNotBlank() },
                 order = state.order,
                 reverse = state.reverse,
                 limit = pageSize,

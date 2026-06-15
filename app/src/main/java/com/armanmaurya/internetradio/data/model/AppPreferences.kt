@@ -9,6 +9,7 @@ data class AppPreferences(
     val appLanguage: String = "System",
     val selectedCountryCode: String? = null,
     val selectedLanguage: String? = null,
+    val selectedTags: Set<String> = emptySet(),
     val order: String = "votes",
     val reverse: Boolean = true
 )

@@ -14,10 +14,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.LocalOffer
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Translate
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -44,9 +47,11 @@ fun RadioSearchBar(
     onSearchCleared: () -> Unit,
     onCountryClick: () -> Unit,
     onLanguageClick: () -> Unit,
+    onTagClick: () -> Unit,
     onSettingsClick: () -> Unit,
     selectedCountryCode: String?,
     selectedLanguage: String?,
+    selectedTags: Set<String>,
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit = {}
 ) {
@@ -80,6 +85,51 @@ fun RadioSearchBar(
                         }
                     } else {
                         Row(verticalAlignment = Alignment.CenterVertically) {
+                            IconButton(onClick = onTagClick) {
+                                BadgedBox(
+                                    badge = {
+                                        if (selectedTags.isNotEmpty()) {
+                                            Badge {
+                                                Text(selectedTags.size.toString())
+                                            }
+                                        }
+                                    }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.LocalOffer,
+                                        contentDescription = "Select Tags",
+                                        tint = if (selectedTags.isNotEmpty())
+                                            MaterialTheme.colorScheme.primary
+                                        else
+                                            MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                            IconButton(onClick = onLanguageClick) {
+                                Box {
+                                    Icon(
+                                        imageVector = Icons.Default.Translate,
+                                        contentDescription = "Select Language",
+                                        tint = if (!selectedLanguage.isNullOrBlank())
+                                            MaterialTheme.colorScheme.primary
+                                        else
+                                            MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    if (!selectedLanguage.isNullOrBlank()) {
+                                        Text(
+                                            text = selectedLanguage.take(2).uppercase(),
+                                            style = MaterialTheme.typography.labelSmall.copy(
+                                                fontSize = 10.sp,
+                                                fontWeight = FontWeight.Bold
+                                            ),
+                                            color = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier
+                                                .align(Alignment.TopEnd)
+                                                .offset(x = 6.dp, y = (-4).dp)
+                                        )
+                                    }
+                                }
+                            }
                             IconButton(onClick = onCountryClick) {
                                 Box {
                                     Icon(
@@ -105,31 +155,8 @@ fun RadioSearchBar(
                                     }
                                 }
                             }
-                            IconButton(onClick = onLanguageClick) {
-                                Box {
-                                    Icon(
-                                        imageVector = Icons.Default.Translate,
-                                        contentDescription = "Select Language",
-                                        tint = if (!selectedLanguage.isNullOrBlank()) 
-                                            MaterialTheme.colorScheme.primary 
-                                        else 
-                                            MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                    if (!selectedLanguage.isNullOrBlank()) {
-                                        Text(
-                                            text = selectedLanguage.take(2).uppercase(),
-                                            style = MaterialTheme.typography.labelSmall.copy(
-                                                fontSize = 10.sp,
-                                                fontWeight = FontWeight.Bold
-                                            ),
-                                            color = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier
-                                                .align(Alignment.TopEnd)
-                                                .offset(x = 6.dp, y = (-4).dp)
-                                        )
-                                    }
-                                }
-                            }
+
+
                             AnimatedVisibility(
                                 visible = !isSearchExpanded,
                                 enter = expandHorizontally() + fadeIn(),

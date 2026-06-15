@@ -33,6 +33,7 @@ class SettingsRepository @Inject constructor(
         val APP_LANGUAGE = stringPreferencesKey("app_language")
         val SELECTED_COUNTRY_CODE = stringPreferencesKey("selected_country_code")
         val SELECTED_LANGUAGE = stringPreferencesKey("selected_language")
+        val SELECTED_TAGS = androidx.datastore.preferences.core.stringSetPreferencesKey("selected_tags")
         val SORT_ORDER = stringPreferencesKey("sort_order")
         val SORT_REVERSE = booleanPreferencesKey("sort_reverse")
         val LAST_COUNTRY_FETCH_TIME = longPreferencesKey("last_country_fetch_time")
@@ -57,6 +58,7 @@ class SettingsRepository @Inject constructor(
             val appLanguage = preferences[PreferencesKeys.APP_LANGUAGE] ?: "System"
             val selectedCountryCode = preferences[PreferencesKeys.SELECTED_COUNTRY_CODE]
             val selectedLanguage = preferences[PreferencesKeys.SELECTED_LANGUAGE]
+            val selectedTags = preferences[PreferencesKeys.SELECTED_TAGS] ?: emptySet()
             val order = preferences[PreferencesKeys.SORT_ORDER] ?: "votes"
             val reverse = preferences[PreferencesKeys.SORT_REVERSE] ?: true
             
@@ -67,6 +69,7 @@ class SettingsRepository @Inject constructor(
                 appLanguage = appLanguage,
                 selectedCountryCode = selectedCountryCode,
                 selectedLanguage = selectedLanguage,
+                selectedTags = selectedTags,
                 order = order,
                 reverse = reverse
             )
@@ -113,6 +116,12 @@ class SettingsRepository @Inject constructor(
             } else {
                 preferences[PreferencesKeys.SELECTED_LANGUAGE] = language
             }
+        }
+    }
+
+    suspend fun setSelectedTags(tags: Set<String>) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.SELECTED_TAGS] = tags
         }
     }
 
