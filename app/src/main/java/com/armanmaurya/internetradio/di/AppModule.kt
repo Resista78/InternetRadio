@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.room.Room
 import com.armanmaurya.internetradio.data.local.dao.FavoriteStationDao
 import com.armanmaurya.internetradio.data.local.database.RadioDatabase
-import com.armanmaurya.internetradio.data.remote.IpApi
 import com.armanmaurya.internetradio.data.remote.RadioBrowserApi
 import dagger.Module
 import dagger.Provides
@@ -30,7 +29,6 @@ object AppModule {
      * https://docs.radio-browser.info/#server-selection
      */
     private const val BASE_URL = "https://de1.api.radio-browser.info/"
-    private const val IP_API_BASE_URL = "http://ip-api.com/"
     private const val APP_USER_AGENT = "InternetRadio/1.0"
 
     @Provides
@@ -65,23 +63,8 @@ object AppModule {
 
     @Provides
     @Singleton
-    @Named("IpApiRetrofit")
-    fun provideIpApiRetrofit(okHttpClient: OkHttpClient): Retrofit =
-        Retrofit.Builder()
-            .baseUrl(IP_API_BASE_URL)
-            .client(okHttpClient)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-
-    @Provides
-    @Singleton
     fun provideRadioBrowserApi(@Named("RadioBrowserRetrofit") retrofit: Retrofit): RadioBrowserApi =
         retrofit.create(RadioBrowserApi::class.java)
-
-    @Provides
-    @Singleton
-    fun provideIpApi(@Named("IpApiRetrofit") retrofit: Retrofit): IpApi =
-        retrofit.create(IpApi::class.java)
 
     @Provides
     @Singleton

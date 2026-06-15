@@ -1,21 +1,22 @@
 package com.armanmaurya.internetradio.data.repository
 
+import android.content.Context
 import com.armanmaurya.internetradio.data.local.dao.MetadataDao
 import com.armanmaurya.internetradio.data.local.entity.toDomain
 import com.armanmaurya.internetradio.data.local.entity.toEntity
 import com.armanmaurya.internetradio.data.model.Country
 import com.armanmaurya.internetradio.data.model.Language
 import com.armanmaurya.internetradio.data.model.RadioStation
-import com.armanmaurya.internetradio.data.remote.IpApi
 import com.armanmaurya.internetradio.data.remote.RadioBrowserApi
 import com.armanmaurya.internetradio.data.remote.dto.toDomain
+import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class StationRepository @Inject constructor(
     private val api: RadioBrowserApi,
-    private val ipApi: IpApi,
+    @ApplicationContext private val context: Context,
     private val metadataDao: MetadataDao,
 ) {
 
@@ -104,7 +105,11 @@ class StationRepository @Inject constructor(
 
     suspend fun getCurrentCountryCode(): Result<String> =
         runCatching {
-            ipApi.getCurrentLocation().countryCode
+            val countryCode = context.resources.configuration.locales[0].country
+            if (countryCode.isBlank()) {
+                throw IllegalStateException("Country code not available in locale")
+            }
+            countryCode
         }
 
     /**
