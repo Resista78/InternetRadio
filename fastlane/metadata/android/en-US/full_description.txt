@@ -1,0 +1,11 @@
+<p><b>Internet Radio</b> is a free, open-source application that lets you discover and listen to thousands of radio stations from all around the world.</p>
+
+<p><b>Features:</b></p>
+<ul>
+  <li><b>Discover:</b> Browse an extensive list of radio stations powered by the community-driven RadioBrowser API.</li>
+  <li><b>Global Reach:</b> Easily filter and search for stations by country or language.</li>
+  <li><b>Favorites:</b> Save your preferred stations for quick and easy access later.</li>
+  <li><b>History:</b> Return to your recently played stations and previous searches effortlessly.</li>
+  <li><b>Modern Interface:</b> A clean, intuitive design ensuring a seamless listening experience.</li>
+  <li><b>Privacy Friendly:</b> Open-source and built with your privacy in mind.</li>
+</ul>
