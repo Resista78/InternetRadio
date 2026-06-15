@@ -20,7 +20,7 @@ InternetRadio is an Android app for discovering and listening to radio stations 
 ## Screenshots
 
 <div align="center">
-  <img width="23%" src="fastlane/metadata/android/en-US/images/1.jpg" alt="Home Screen">
+  <img width="23%" src="fastlane/metadata/android/en-US/images/1.jpg" alt="Browse Screen">
   <img width="23%" src="fastlane/metadata/android/en-US/images/2.jpg" alt="Player Screen">
   <img width="23%" src="fastlane/metadata/android/en-US/images/3.jpg" alt="Search Screen">
   <img width="23%" src="fastlane/metadata/android/en-US/images/4.jpg" alt="Settings Screen">

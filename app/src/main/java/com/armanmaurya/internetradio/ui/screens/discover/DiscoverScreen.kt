@@ -30,6 +30,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.ui.res.stringResource
+import com.armanmaurya.internetradio.R
 import com.armanmaurya.internetradio.data.model.RadioStation
 import com.armanmaurya.internetradio.ui.components.RadioSearchBar
 import com.armanmaurya.internetradio.ui.components.StationCard
@@ -94,7 +96,11 @@ fun DiscoverScreen(
     playerViewModel: PlayerViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val tabs = listOf("Home", "Recent", "Favourites")
+    val tabs = listOf(
+        stringResource(R.string.tab_browse),
+        stringResource(R.string.tab_recent),
+        stringResource(R.string.tab_favourites)
+    )
     val pagerState = rememberPagerState(pageCount = { tabs.size })
     val coroutineScope = rememberCoroutineScope()
     

@@ -21,4 +21,9 @@
     <string name="about_app_description">A simple internet radio player that lets you discover and listen to thousands of radio stations from across the globe.</string>
     <string name="about_view_contributors">View Contributors</string>
     <string name="about_view_github">View on GitHub</string>
+
+    <!-- Discover Screen -->
+    <string name="tab_browse">Browse</string>
+    <string name="tab_recent">Recent</string>
+    <string name="tab_favourites">Favourites</string>
 </resources>
