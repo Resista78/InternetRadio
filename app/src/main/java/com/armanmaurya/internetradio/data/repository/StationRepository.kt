@@ -7,6 +7,7 @@ import com.armanmaurya.internetradio.data.local.entity.toEntity
 import com.armanmaurya.internetradio.data.model.Country
 import com.armanmaurya.internetradio.data.model.Language
 import com.armanmaurya.internetradio.data.model.RadioStation
+import com.armanmaurya.internetradio.data.model.Tag
 import com.armanmaurya.internetradio.data.remote.RadioBrowserApi
 import com.armanmaurya.internetradio.data.remote.dto.toDomain
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -99,6 +100,17 @@ class StationRepository @Inject constructor(
                 }
             } else {
                 api.getLanguagesFiltered(filter = filter, order = "stationcount", reverse = true)
+                    .map { it.toDomain() }
+            }
+        }
+
+    suspend fun getTags(filter: String? = null): Result<List<Tag>> =
+        runCatching {
+            if (filter.isNullOrBlank()) {
+                api.getTags(order = "stationcount", reverse = true)
+                    .map { it.toDomain() }
+            } else {
+                api.getTagsFiltered(filter = filter, order = "stationcount", reverse = true)
                     .map { it.toDomain() }
             }
         }

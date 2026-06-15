@@ -3,6 +3,7 @@ package com.armanmaurya.internetradio.data.remote
 import com.armanmaurya.internetradio.data.remote.dto.CountryDto
 import com.armanmaurya.internetradio.data.remote.dto.LanguageDto
 import com.armanmaurya.internetradio.data.remote.dto.StationDto
+import com.armanmaurya.internetradio.data.remote.dto.TagDto
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -30,6 +31,25 @@ interface RadioBrowserApi {
         @Query("offset") offset: Int = 0,
         @Query("limit") limit: Int = 100000,
     ): List<LanguageDto>
+
+    @GET("json/tags")
+    suspend fun getTags(
+        @Query("order") order: String = "name",
+        @Query("reverse") reverse: Boolean = false,
+        @Query("hidebroken") hideBroken: Boolean = false,
+        @Query("offset") offset: Int = 0,
+        @Query("limit") limit: Int = 100000,
+    ): List<TagDto>
+
+    @GET("json/tags/{filter}")
+    suspend fun getTagsFiltered(
+        @Path("filter") filter: String,
+        @Query("order") order: String = "name",
+        @Query("reverse") reverse: Boolean = false,
+        @Query("hidebroken") hideBroken: Boolean = false,
+        @Query("offset") offset: Int = 0,
+        @Query("limit") limit: Int = 100000,
+    ): List<TagDto>
 
     @GET("json/stations/search")
     suspend fun advancedSearch(
