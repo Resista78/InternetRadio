@@ -26,4 +26,15 @@
     <string name="tab_browse">Browse</string>
     <string name="tab_recent">Recent</string>
     <string name="tab_favourites">Favourites</string>
+    <string name="tab_added">Added</string>
+
+    <!-- Added Tab -->
+    <string name="add_station">Add Station</string>
+    <string name="no_added_stations">No custom stations added</string>
+    <string name="dialog_add_station_title">Add Custom Station</string>
+    <string name="dialog_add_station_name_label">Station Name</string>
+    <string name="dialog_add_station_url_label">Stream URL</string>
+    <string name="dialog_add_station_thumbnail_label">Thumbnail URL (Optional)</string>
+    <string name="dialog_add_station_add">Add</string>
+    <string name="dialog_add_station_cancel">Cancel</string>
 </resources>

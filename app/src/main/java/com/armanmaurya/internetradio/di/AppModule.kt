@@ -89,4 +89,9 @@ object AppModule {
     @Singleton
     fun provideRecentStationDao(database: RadioDatabase): com.armanmaurya.internetradio.data.local.dao.RecentStationDao =
         database.recentStationDao
+
+    @Provides
+    @Singleton
+    fun provideUserStationDao(database: RadioDatabase): com.armanmaurya.internetradio.data.local.dao.UserStationDao =
+        database.userStationDao
 }

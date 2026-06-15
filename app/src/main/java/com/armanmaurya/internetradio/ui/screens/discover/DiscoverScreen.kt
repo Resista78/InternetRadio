@@ -59,15 +59,21 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.rememberCoroutineScope
 import com.armanmaurya.internetradio.ui.screens.favorites.FavoritesContent
 import com.armanmaurya.internetradio.ui.screens.recent.RecentContent
+import com.armanmaurya.internetradio.ui.screens.added.AddedContent
+import com.armanmaurya.internetradio.ui.screens.added.AddedViewModel
+import com.armanmaurya.internetradio.ui.screens.added.AddStationBottomSheet
 import kotlinx.coroutines.launch
 
 import androidx.compose.material3.Surface
+import androidx.compose.material3.ScrollableTabRow
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.rememberModalBottomSheetState
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LocalRippleConfiguration
-import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.offset
@@ -94,12 +100,14 @@ fun DiscoverScreen(
     contentPadding: PaddingValues = PaddingValues(0.dp),
     viewModel: DiscoverViewModel = hiltViewModel(),
     playerViewModel: PlayerViewModel = hiltViewModel(),
+    addedViewModel: AddedViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val tabs = listOf(
         stringResource(R.string.tab_browse),
         stringResource(R.string.tab_recent),
-        stringResource(R.string.tab_favourites)
+        stringResource(R.string.tab_favourites),
+        stringResource(R.string.tab_added)
     )
     val pagerState = rememberPagerState(pageCount = { tabs.size })
     val coroutineScope = rememberCoroutineScope()
@@ -110,6 +118,9 @@ fun DiscoverScreen(
             repeat(tabs.size) { add(0.dp) }
         }
     }
+
+    var showAddBottomSheet by remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState()
 
     Scaffold(
         topBar = {
@@ -143,16 +154,46 @@ fun DiscoverScreen(
                 }
             }
         },
+        floatingActionButton = {
+            if (pagerState.currentPage == 3) {
+                FloatingActionButton(
+                    onClick = { showAddBottomSheet = true },
+                    modifier = Modifier.padding(bottom = contentPadding.calculateBottomPadding())
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = stringResource(R.string.add_station)
+                    )
+                }
+            }
+        },
         modifier = modifier.fillMaxSize(),
     ) { innerPadding ->
+        if (showAddBottomSheet) {
+            AddStationBottomSheet(
+                onDismiss = { showAddBottomSheet = false },
+                onConfirm = { name, url, favicon ->
+                    addedViewModel.addStation(name, url, favicon)
+                    coroutineScope.launch {
+                        sheetState.hide()
+                    }.invokeOnCompletion {
+                        if (!sheetState.isVisible) {
+                            showAddBottomSheet = false
+                        }
+                    }
+                },
+                sheetState = sheetState
+            )
+        }
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            TabRow(
+            ScrollableTabRow(
                 selectedTabIndex = pagerState.currentPage,
                 modifier = Modifier.padding(horizontal = 4.dp),
+                edgePadding = 24.dp,
                 indicator = { tabPositions ->
                     if (pagerState.currentPage < tabPositions.size) {
                         val pagerPage = pagerState.currentPage
@@ -210,9 +251,13 @@ fun DiscoverScreen(
                                         MaterialTheme.colorScheme.onPrimaryContainer
                                     else
                                         MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.onGloballyPositioned { coords ->
-                                        tabWidths[index] = with(density) { coords.size.width.toDp() }
-                                    }
+                                    modifier = Modifier
+                                        .padding(horizontal = 12.dp)
+                                        .onGloballyPositioned { coords ->
+                                            if (index < tabWidths.size) {
+                                                tabWidths[index] = with(density) { coords.size.width.toDp() }
+                                            }
+                                        }
                                 )
                             }
                         )
@@ -246,12 +291,11 @@ fun DiscoverScreen(
                             onStationClick = { playerViewModel.play(it) },
                             contentPadding = contentPadding
                         )
-                        else -> Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(text = "${tabs[page]} screen coming soon")
-                        }
+                        3 -> AddedContent(
+                            onStationClick = { playerViewModel.play(it) },
+                            contentPadding = contentPadding,
+                            viewModel = addedViewModel
+                        )
                     }
                 }
             }

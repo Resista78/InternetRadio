@@ -9,7 +9,11 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Card
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,6 +34,7 @@ fun StationCard(
     station: RadioStation,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    onDeleteClick: (() -> Unit)? = null,
 ) {
     Card(
         modifier = modifier
@@ -63,6 +68,26 @@ fun StationCard(
                         )
                     )
             )
+
+            if (onDeleteClick != null) {
+                IconButton(
+                    onClick = onDeleteClick,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(4.dp)
+                        .background(
+                            color = Color.Black.copy(alpha = 0.4f),
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Delete Station",
+                        tint = Color.White,
+                        modifier = Modifier.padding(4.dp)
+                    )
+                }
+            }
 
             Column(
                 modifier = Modifier
