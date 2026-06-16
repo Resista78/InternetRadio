@@ -14,6 +14,9 @@ import javax.inject.Inject
 
 data class TagSelectUiState(
     val tags: List<Tag> = emptyList(),
+    val selectedTags: Set<String> = emptySet(),
+    val searchQuery: String = "",
+    val isSearchActive: Boolean = false,
     val isLoading: Boolean = false,
     val error: String? = null
 )
@@ -28,6 +31,48 @@ class TagSelectViewModel @Inject constructor(
 
     init {
         loadTags()
+    }
+
+    fun setInitialTags(tags: Set<String>) {
+        _uiState.update { it.copy(selectedTags = tags) }
+    }
+
+    fun onSearchQueryChange(query: String) {
+        _uiState.update { it.copy(searchQuery = query) }
+    }
+
+    fun toggleSearch() {
+        _uiState.update { 
+            it.copy(
+                isSearchActive = !it.isSearchActive,
+                searchQuery = if (it.isSearchActive) "" else it.searchQuery
+            ) 
+        }
+    }
+
+    fun toggleTagSelection(tagName: String) {
+        _uiState.update { state ->
+            val newSelected = if (state.selectedTags.contains(tagName)) {
+                state.selectedTags - tagName
+            } else {
+                state.selectedTags + tagName
+            }
+            state.copy(selectedTags = newSelected)
+        }
+    }
+
+    fun addCustomTag(tagName: String) {
+        if (tagName.isBlank()) return
+        _uiState.update { state ->
+            state.copy(
+                selectedTags = state.selectedTags + tagName.trim(),
+                searchQuery = ""
+            )
+        }
+    }
+
+    fun clearSelectedTags() {
+        _uiState.update { it.copy(selectedTags = emptySet()) }
     }
 
     private fun loadTags() {

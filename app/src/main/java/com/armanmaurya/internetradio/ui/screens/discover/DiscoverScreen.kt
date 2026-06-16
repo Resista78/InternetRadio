@@ -80,7 +80,6 @@ import com.armanmaurya.internetradio.ui.screens.added.AddedContent
 import com.armanmaurya.internetradio.ui.screens.added.AddedViewModel
 import com.armanmaurya.internetradio.ui.screens.favorites.FavoritesContent
 import com.armanmaurya.internetradio.ui.screens.recent.RecentContent
-import com.armanmaurya.internetradio.ui.screens.tag.TagSelectDialog
 import kotlinx.coroutines.launch
 import kotlin.math.absoluteValue
 
@@ -90,6 +89,7 @@ fun DiscoverScreen(
     onSettingsClick: () -> Unit,
     onCountryClick: () -> Unit,
     onLanguageClick: () -> Unit,
+    onTagClick: () -> Unit,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp),
     viewModel: DiscoverViewModel = hiltViewModel(),
@@ -114,7 +114,6 @@ fun DiscoverScreen(
     }
 
     var showAddBottomSheet by remember { mutableStateOf(false) }
-    var showTagDialog by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
 
     Scaffold(
@@ -128,7 +127,7 @@ fun DiscoverScreen(
                 onSearchCleared = viewModel::onSearchCleared,
                 onCountryClick = onCountryClick,
                 onLanguageClick = onLanguageClick,
-                onTagClick = { showTagDialog = true },
+                onTagClick = onTagClick,
                 onSettingsClick = onSettingsClick,
                 selectedCountryCode = uiState.selectedCountryCode,
                 selectedLanguage = uiState.selectedLanguage,
@@ -186,16 +185,7 @@ fun DiscoverScreen(
                 sheetState = sheetState
             )
         }
-        if (showTagDialog) {
-            TagSelectDialog(
-                initialTags = uiState.selectedTags,
-                onDismissRequest = { showTagDialog = false },
-                onSaveTags = { tags ->
-                    viewModel.updateTags(tags)
-                    showTagDialog = false
-                }
-            )
-        }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()

@@ -3,6 +3,7 @@ package com.armanmaurya.internetradio.ui.screens.settings
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -46,7 +47,8 @@ import com.armanmaurya.internetradio.ui.theme.AppTheme
 fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
     onBackClick: () -> Unit,
-    onAboutClick: () -> Unit
+    onAboutClick: () -> Unit,
+    contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -55,6 +57,7 @@ fun SettingsScreen(
     var languageExpanded by remember { mutableStateOf(false) }
 
     Scaffold(
+        modifier = Modifier.padding(bottom = contentPadding.calculateBottomPadding()),
         topBar = { SettingsTopBar(onBackClick) }
     ) { innerPadding ->
         Column(

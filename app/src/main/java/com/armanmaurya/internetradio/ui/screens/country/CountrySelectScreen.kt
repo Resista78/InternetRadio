@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.armanmaurya.internetradio.data.model.Country
@@ -31,6 +32,7 @@ fun CountrySelectScreen(
     onCountrySelected: (Country) -> Unit,
     onBackClick: () -> Unit,
     selectedCountryCode: String? = null,
+    contentPadding: PaddingValues = PaddingValues(0.dp),
     viewModel: CountrySelectViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -48,6 +50,7 @@ fun CountrySelectScreen(
 
     val focusRequester = remember { FocusRequester() }
     val listState = rememberLazyListState()
+    var hasAutoScrolled by remember { mutableStateOf(false) }
 
     LaunchedEffect(uiState.isSearchActive) {
         if (uiState.isSearchActive) {
@@ -57,12 +60,13 @@ fun CountrySelectScreen(
 
     // Scroll to selected country
     LaunchedEffect(uiState.isLoading, selectedCountryCode) {
-        if (!uiState.isLoading && selectedCountryCode != null && uiState.countries.isNotEmpty()) {
+        if (!hasAutoScrolled && !uiState.isLoading && selectedCountryCode != null && uiState.countries.isNotEmpty()) {
             val index = filteredCountries.indexOfFirst { it.isoCode == selectedCountryCode }
             if (index >= 0) {
                 // Small delay to ensure layout is ready
                 delay(100)
-                listState.animateScrollToItem(index)
+                listState.scrollToItem(index + 1)
+                hasAutoScrolled = true
             }
         }
     }
@@ -72,6 +76,7 @@ fun CountrySelectScreen(
     }
 
     Scaffold(
+        modifier = Modifier.padding(bottom = contentPadding.calculateBottomPadding()),
         topBar = {
             TopAppBar(
                 title = {

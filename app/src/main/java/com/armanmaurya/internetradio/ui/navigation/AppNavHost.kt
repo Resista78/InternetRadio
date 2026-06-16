@@ -10,13 +10,13 @@ import androidx.navigation.compose.composable
 import com.armanmaurya.internetradio.ui.screens.discover.DiscoverScreen
 import com.armanmaurya.internetradio.ui.screens.country.CountrySelectScreen
 import com.armanmaurya.internetradio.ui.screens.country.LanguageSelectScreen
+import com.armanmaurya.internetradio.ui.screens.tag.TagSelectScreen
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.armanmaurya.internetradio.ui.screens.discover.DiscoverViewModel
 import com.armanmaurya.internetradio.ui.screens.settings.SettingsScreen
 import com.armanmaurya.internetradio.ui.screens.settings.AboutScreen
 import androidx.navigation.navArgument
 import androidx.navigation.NavType
-
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
@@ -70,18 +70,24 @@ fun AppNavHost(
                     val currentLanguage = discoverViewModel.uiState.value.selectedLanguage
                     navController.navigate(AppDestination.LanguageSelect.createRoute(currentLanguage))
                 },
+                onTagClick = {
+                    val currentTags = discoverViewModel.uiState.value.selectedTags
+                    navController.navigate(AppDestination.TagSelect.createRoute(currentTags))
+                },
                 contentPadding = contentPadding
             )
         }
         composable(AppDestination.Settings.route) {
             SettingsScreen(
                 onBackClick = { navController.popBackStack() },
-                onAboutClick = { navController.navigate(AppDestination.About.route) }
+                onAboutClick = { navController.navigate(AppDestination.About.route) },
+                contentPadding = contentPadding
             )
         }
         composable(AppDestination.About.route) {
             AboutScreen(
-                onBackClick = { navController.popBackStack() }
+                onBackClick = { navController.popBackStack() },
+                contentPadding = contentPadding
             )
         }
         composable(
@@ -101,7 +107,8 @@ fun AppNavHost(
                     discoverViewModel.updateCountry(country.isoCode)
                     navController.popBackStack()
                 },
-                onBackClick = { navController.popBackStack() }
+                onBackClick = { navController.popBackStack() },
+                contentPadding = contentPadding
             )
         }
         composable(
@@ -121,7 +128,30 @@ fun AppNavHost(
                     discoverViewModel.updateLanguage(language.name)
                     navController.popBackStack()
                 },
-                onBackClick = { navController.popBackStack() }
+                onBackClick = { navController.popBackStack() },
+                contentPadding = contentPadding
+            )
+        }
+        composable(
+            route = AppDestination.TagSelect.route,
+            arguments = listOf(
+                navArgument("selectedTags") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                }
+            )
+        ) { backStackEntry ->
+            val selectedTagsStr = backStackEntry.arguments?.getString("selectedTags")
+            val initialTags = selectedTagsStr?.split(",")?.filter { it.isNotBlank() }?.toSet() ?: emptySet()
+            TagSelectScreen(
+                initialTags = initialTags,
+                onTagsSelected = { tags ->
+                    discoverViewModel.updateTags(tags)
+                    navController.popBackStack()
+                },
+                onBackClick = { navController.popBackStack() },
+                contentPadding = contentPadding
             )
         }
     }

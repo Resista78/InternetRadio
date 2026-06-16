@@ -10,4 +10,7 @@ sealed class AppDestination(val route: String) {
     data object LanguageSelect : AppDestination("language_select?selectedLanguage={selectedLanguage}") {
         fun createRoute(selectedLanguage: String?) = "language_select?selectedLanguage=$selectedLanguage"
     }
+    data object TagSelect : AppDestination("tag_select?selectedTags={selectedTags}") {
+        fun createRoute(selectedTags: Set<String>) = "tag_select?selectedTags=${selectedTags.joinToString(",")}"
+    }
 }

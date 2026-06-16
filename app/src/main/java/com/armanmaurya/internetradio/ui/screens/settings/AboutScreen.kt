@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -51,7 +52,8 @@ import com.armanmaurya.internetradio.R
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutScreen(
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
     val context = LocalContext.current
     val packageInfo = try {
@@ -71,6 +73,7 @@ fun AboutScreen(
     }
 
     Scaffold(
+        modifier = Modifier.padding(bottom = contentPadding.calculateBottomPadding()),
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text(stringResource(R.string.about_title)) },

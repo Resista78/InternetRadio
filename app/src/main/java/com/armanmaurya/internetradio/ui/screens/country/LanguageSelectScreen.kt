@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.armanmaurya.internetradio.data.model.Language
@@ -30,6 +31,7 @@ fun LanguageSelectScreen(
     onLanguageSelected: (Language) -> Unit,
     onBackClick: () -> Unit,
     selectedLanguage: String? = null,
+    contentPadding: PaddingValues = PaddingValues(0.dp),
     viewModel: LanguageSelectViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -46,6 +48,7 @@ fun LanguageSelectScreen(
 
     val focusRequester = remember { FocusRequester() }
     val listState = rememberLazyListState()
+    var hasAutoScrolled by remember { mutableStateOf(false) }
 
     LaunchedEffect(uiState.isSearchActive) {
         if (uiState.isSearchActive) {
@@ -55,11 +58,12 @@ fun LanguageSelectScreen(
 
     // Scroll to selected language
     LaunchedEffect(uiState.isLoading, selectedLanguage) {
-        if (!uiState.isLoading && selectedLanguage != null && uiState.languages.isNotEmpty()) {
+        if (!hasAutoScrolled && !uiState.isLoading && selectedLanguage != null && uiState.languages.isNotEmpty()) {
             val index = filteredLanguages.indexOfFirst { it.name == selectedLanguage }
             if (index >= 0) {
                 delay(100)
-                listState.animateScrollToItem(index)
+                listState.scrollToItem(index + 1)
+                hasAutoScrolled = true
             }
         }
     }
@@ -69,6 +73,7 @@ fun LanguageSelectScreen(
     }
 
     Scaffold(
+        modifier = Modifier.padding(bottom = contentPadding.calculateBottomPadding()),
         topBar = {
             TopAppBar(
                 title = {
