@@ -22,6 +22,10 @@ class FavoriteRepository @Inject constructor(
         return favoriteStationDao.isFavorite(stationUuid).map { it != 0 }
     }
 
+    suspend fun isFavoriteDirect(stationUuid: String): Boolean {
+        return favoriteStationDao.isFavoriteDirect(stationUuid)
+    }
+
     suspend fun addFavorite(station: RadioStation) {
         favoriteStationDao.insertFavorite(station.toEntity())
     }

@@ -17,4 +17,7 @@ interface FavoriteStationDao {
 
     @Query("SELECT EXISTS(SELECT 1 FROM favorite_stations WHERE stationUuid = :stationUuid)")
     fun isFavorite(stationUuid: String): Flow<Int>
+
+    @Query("SELECT EXISTS(SELECT 1 FROM favorite_stations WHERE stationUuid = :stationUuid)")
+    suspend fun isFavoriteDirect(stationUuid: String): Boolean
 }

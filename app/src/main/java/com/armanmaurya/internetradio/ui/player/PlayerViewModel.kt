@@ -23,6 +23,51 @@ class PlayerViewModel @Inject constructor(
 
     val playbackState = playerController.playbackState
 
+    init {
+        playbackState
+            .map { it.isError }
+            .distinctUntilChanged()
+            .onEach { isError ->
+                if (isError) {
+                    handlePlaybackFailure()
+                }
+            }
+            .launchIn(viewModelScope)
+    }
+
+    private fun handlePlaybackFailure() {
+        val currentStation = playbackState.value.currentStation ?: return
+        viewModelScope.launch {
+            stationRepository.getStationsByUuid(listOf(currentStation.stationUuid))
+                .onSuccess { freshStations ->
+                    val freshStation = freshStations.firstOrNull() ?: return@onSuccess
+                    
+                    val hasChanged = freshStation.name != currentStation.name ||
+                            freshStation.url != currentStation.url ||
+                            freshStation.urlResolved != currentStation.urlResolved ||
+                            freshStation.favicon != currentStation.favicon ||
+                            freshStation.tags != currentStation.tags ||
+                            freshStation.country != currentStation.country ||
+                            freshStation.language != currentStation.language ||
+                            freshStation.codec != currentStation.codec ||
+                            freshStation.bitrate != currentStation.bitrate
+
+                    if (hasChanged) {
+                        // Update Favorite if it exists
+                        if (favoriteRepository.isFavoriteDirect(currentStation.stationUuid)) {
+                            favoriteRepository.addFavorite(freshStation)
+                        }
+                        
+                        // Update Recent
+                        recentRepository.addRecentStation(freshStation)
+                        
+                        // Re-trigger playback with fresh station
+                        play(freshStation)
+                    }
+                }
+        }
+    }
+
     @OptIn(ExperimentalCoroutinesApi::class)
     val isFavorite = playbackState
         .map { it.currentStation?.stationUuid }
