@@ -65,7 +65,7 @@ fun CountrySelectScreen(
             if (index >= 0) {
                 // Small delay to ensure layout is ready
                 delay(100)
-                listState.scrollToItem(index + 1)
+                listState.animateScrollToItem(index + 1)
                 hasAutoScrolled = true
             }
         }
@@ -76,7 +76,6 @@ fun CountrySelectScreen(
     }
 
     Scaffold(
-        modifier = Modifier.padding(bottom = contentPadding.calculateBottomPadding()),
         topBar = {
             TopAppBar(
                 title = {
@@ -132,9 +131,7 @@ fun CountrySelectScreen(
         }
     ) { innerPadding ->
         Box(
-            modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize()
+            modifier = Modifier.fillMaxSize()
         ) {
             if (uiState.isLoading) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -145,7 +142,13 @@ fun CountrySelectScreen(
                     Text(text = uiState.error ?: "Unknown error")
                 }
             } else {
-                LazyColumn(state = listState) {
+                LazyColumn(
+                    state = listState,
+                    contentPadding = PaddingValues(
+                        top = innerPadding.calculateTopPadding(),
+                        bottom = innerPadding.calculateBottomPadding() + contentPadding.calculateBottomPadding()
+                    )
+                ) {
                     item {
                         CountryItem(
                             country = Country(name = "All Countries", isoCode = "", stationCount = totalStations),
@@ -159,7 +162,7 @@ fun CountrySelectScreen(
                             country = country,
                             isSelected = isSelected,
                             onClick = { onCountrySelected(country) },
-                            modifier = Modifier.animateItem()
+                            modifier = if (hasAutoScrolled) Modifier.animateItem() else Modifier
                         )
                     }
                 }

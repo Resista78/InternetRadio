@@ -183,4 +183,9 @@ class StationRepository @Inject constructor(
     suspend fun registerClick(stationUuid: String) {
         runCatching { api.clickStation(stationUuid) }
     }
+
+    suspend fun getStationsByUuid(uuids: List<String>): Result<List<RadioStation>> =
+        runCatching {
+            api.getStationsByUuid(uuids.joinToString(",")).map { it.toDomain() }
+        }
 }

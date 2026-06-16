@@ -62,7 +62,7 @@ fun LanguageSelectScreen(
             val index = filteredLanguages.indexOfFirst { it.name == selectedLanguage }
             if (index >= 0) {
                 delay(100)
-                listState.scrollToItem(index + 1)
+                listState.animateScrollToItem(index + 1)
                 hasAutoScrolled = true
             }
         }
@@ -73,7 +73,6 @@ fun LanguageSelectScreen(
     }
 
     Scaffold(
-        modifier = Modifier.padding(bottom = contentPadding.calculateBottomPadding()),
         topBar = {
             TopAppBar(
                 title = {
@@ -129,9 +128,7 @@ fun LanguageSelectScreen(
         }
     ) { innerPadding ->
         Box(
-            modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize()
+            modifier = Modifier.fillMaxSize()
         ) {
             if (uiState.isLoading) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -142,12 +139,18 @@ fun LanguageSelectScreen(
                     Text(text = uiState.error ?: "Unknown error")
                 }
             } else {
-                LazyColumn(state = listState) {
-                    item {
+                LazyColumn(
+                    state = listState,
+                    contentPadding = PaddingValues(
+                        top = innerPadding.calculateTopPadding(),
+                        bottom = innerPadding.calculateBottomPadding() + contentPadding.calculateBottomPadding()
+                    )
+                ) {
+                    item(key = "all_languages") {
                         LanguageItem(
-                            language = Language(name = "All Languages", isoCode = null, stationCount = totalStations),
+                            language = Language(name = "All Languages", isoCode = "", stationCount = totalStations),
                             isSelected = selectedLanguage.isNullOrBlank(),
-                            onClick = { onLanguageSelected(Language(name = "All Languages", isoCode = null, stationCount = totalStations)) }
+                            onClick = { onLanguageSelected(Language(name = "All Languages", isoCode = "", stationCount = totalStations)) }
                         )
                     }
                     itemsIndexed(filteredLanguages, key = { _, language -> language.name }) { _, language ->
@@ -156,7 +159,7 @@ fun LanguageSelectScreen(
                             language = language,
                             isSelected = isSelected,
                             onClick = { onLanguageSelected(language) },
-                            modifier = Modifier.animateItem()
+                            modifier = if (hasAutoScrolled) Modifier.animateItem() else Modifier
                         )
                     }
                 }

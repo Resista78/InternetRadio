@@ -82,6 +82,11 @@ interface RadioBrowserApi {
     suspend fun clickStation(
         @retrofit2.http.Path("stationuuid") stationUuid: String,
     ): StationClickResponse
+
+    @GET("json/stations/byuuid")
+    suspend fun getStationsByUuid(
+        @Query("uuids") uuids: String
+    ): List<StationDto>
 }
 
 data class StationClickResponse(
