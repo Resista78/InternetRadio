@@ -10,6 +10,8 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import okhttp3.Cache
+import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -30,21 +32,51 @@ object AppModule {
      */
     private const val BASE_URL = "https://de1.api.radio-browser.info/"
     private const val APP_USER_AGENT = "InternetRadio/1.0"
+    private const val CACHE_SIZE = 50 * 1024 * 1024L // 50 MB
 
     @Provides
     @Singleton
-    fun provideOkHttpClient(): OkHttpClient {
+    fun provideOkHttpClient(@ApplicationContext context: Context): OkHttpClient {
         val logging = HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BASIC
         }
 
+        val cache = Cache(context.cacheDir, CACHE_SIZE)
+
+        val cacheInterceptor = Interceptor { chain ->
+            val request = chain.request()
+            val response = chain.proceed(request)
+            val path = request.url.encodedPath
+
+            val cacheHeader = when {
+                path.contains("stations/search") ->
+                    "public, max-age=${24 * 60 * 60}, stale-if-error=${7 * 24 * 60 * 60}"
+                path.contains("countries") ||
+                        path.contains("languages") ||
+                        path.contains("tags") ->
+                    "public, max-age=${7 * 24 * 60 * 60}, stale-if-error=${30 * 24 * 60 * 60}"
+                else -> null
+            }
+
+            if (cacheHeader != null) {
+                response.newBuilder()
+                    .header("Cache-Control", cacheHeader)
+                    .removeHeader("Pragma")
+                    .build()
+            } else {
+                response
+            }
+        }
+
         return OkHttpClient.Builder()
+            .cache(cache)
             .addInterceptor { chain ->
                 val request = chain.request().newBuilder()
                     .header("User-Agent", APP_USER_AGENT)
                     .build()
                 chain.proceed(request)
             }
+            .addNetworkInterceptor(cacheInterceptor)
             .addInterceptor(logging)
             .connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(15, TimeUnit.SECONDS)
@@ -73,17 +105,12 @@ object AppModule {
             context,
             RadioDatabase::class.java,
             "radio_database"
-        ).fallbackToDestructiveMigration(dropAllTables = true).build()
+        ).build()
 
     @Provides
     @Singleton
     fun provideFavoriteStationDao(database: RadioDatabase): FavoriteStationDao =
         database.favoriteStationDao
-
-    @Provides
-    @Singleton
-    fun provideMetadataDao(database: RadioDatabase): com.armanmaurya.internetradio.data.local.dao.MetadataDao =
-        database.metadataDao
 
     @Provides
     @Singleton

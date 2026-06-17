@@ -39,9 +39,6 @@ class SettingsRepository @Inject constructor(
         val USE_FILTER_ON_RECENT = booleanPreferencesKey("use_filter_on_recent")
         val USE_FILTER_ON_FAVORITES = booleanPreferencesKey("use_filter_on_favorites")
         val USE_FILTER_ON_ADDED = booleanPreferencesKey("use_filter_on_added")
-        val LAST_COUNTRY_FETCH_TIME = longPreferencesKey("last_country_fetch_time")
-        val LAST_LANGUAGE_FETCH_TIME = longPreferencesKey("last_language_fetch_time")
-        val LAST_TAG_FETCH_TIME = longPreferencesKey("last_tag_fetch_time")
     }
 
     val appPreferencesFlow: Flow<AppPreferences> = context.dataStore.data
@@ -156,26 +153,5 @@ class SettingsRepository @Inject constructor(
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.SORT_REVERSE] = reverse
         }
-    }
-
-    suspend fun getLastCountryFetchTime(): Long =
-        context.dataStore.data.map { it[PreferencesKeys.LAST_COUNTRY_FETCH_TIME] ?: 0L }.first()
-
-    suspend fun setLastCountryFetchTime(time: Long) {
-        context.dataStore.edit { it[PreferencesKeys.LAST_COUNTRY_FETCH_TIME] = time }
-    }
-
-    suspend fun getLastLanguageFetchTime(): Long =
-        context.dataStore.data.map { it[PreferencesKeys.LAST_LANGUAGE_FETCH_TIME] ?: 0L }.first()
-
-    suspend fun setLastLanguageFetchTime(time: Long) {
-        context.dataStore.edit { it[PreferencesKeys.LAST_LANGUAGE_FETCH_TIME] = time }
-    }
-
-    suspend fun getLastTagFetchTime(): Long =
-        context.dataStore.data.map { it[PreferencesKeys.LAST_TAG_FETCH_TIME] ?: 0L }.first()
-
-    suspend fun setLastTagFetchTime(time: Long) {
-        context.dataStore.edit { it[PreferencesKeys.LAST_TAG_FETCH_TIME] = time }
     }
 }
