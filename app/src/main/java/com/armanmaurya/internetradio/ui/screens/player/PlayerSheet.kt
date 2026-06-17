@@ -358,7 +358,7 @@ fun PlayerSheetContent(
                                     )
                                 }
 
-                                listOf(15, 30, 45, 60, 90, 120).forEach { mins ->
+                                listOf(1, 15, 30, 45, 60, 90, 120).forEach { mins ->
                                     AssistChip(
                                         onClick = {
                                             onSetSleepTimer(mins * 60 * 1000L)

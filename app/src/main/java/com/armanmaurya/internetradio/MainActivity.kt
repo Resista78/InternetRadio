@@ -71,10 +71,12 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-                // Handle Re-appearing (Show player when a station starts playing)
+                // Handle Re-appearing (Show player when a station starts playing) and Hiding (when playback stops)
                 LaunchedEffect(playbackState.currentStation) {
                     if (playbackState.currentStation != null && scaffoldState.bottomSheetState.currentValue == SheetValue.Hidden) {
                         scaffoldState.bottomSheetState.partialExpand()
+                    } else if (playbackState.currentStation == null && scaffoldState.bottomSheetState.currentValue != SheetValue.Hidden) {
+                        scaffoldState.bottomSheetState.hide()
                     }
                 }
 
