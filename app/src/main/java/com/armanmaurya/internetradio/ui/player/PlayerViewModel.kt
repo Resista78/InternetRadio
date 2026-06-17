@@ -104,4 +104,12 @@ class PlayerViewModel @Inject constructor(
     fun stop() {
         playerController.stop()
     }
+
+    fun setSleepTimer(durationMillis: Long) {
+        playerController.setSleepTimer(durationMillis)
+    }
+
+    fun cancelSleepTimer() {
+        playerController.cancelSleepTimer()
+    }
 }

@@ -124,6 +124,8 @@ class MainActivity : ComponentActivity() {
                                     scope.launch { scaffoldState.bottomSheetState.hide() }
                                 },
                                 onToggleFavorite = playerViewModel::toggleFavorite,
+                                onSetSleepTimer = playerViewModel::setSleepTimer,
+                                onCancelSleepTimer = playerViewModel::cancelSleepTimer,
                                 onCollapse = {
                                     scope.launch { scaffoldState.bottomSheetState.partialExpand() }
                                 },

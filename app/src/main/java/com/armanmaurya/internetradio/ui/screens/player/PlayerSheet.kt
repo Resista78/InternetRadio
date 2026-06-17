@@ -1,18 +1,17 @@
 package com.armanmaurya.internetradio.ui.screens.player
 
+import androidx.compose.animation.*
 import androidx.compose.animation.core.withInfiniteAnimationFrameMillis
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.lerp
 import coil3.compose.AsyncImage
 import com.armanmaurya.internetradio.R
 import com.armanmaurya.internetradio.player.PlaybackState
+import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
 @Composable
@@ -61,6 +62,8 @@ fun PlayerSheetContent(
     onTogglePlayPause: () -> Unit,
     onStop: () -> Unit,
     onToggleFavorite: () -> Unit,
+    onSetSleepTimer: (Long) -> Unit,
+    onCancelSleepTimer: () -> Unit,
     onCollapse: () -> Unit,
     onExpand: () -> Unit,
     modifier: Modifier = Modifier
@@ -71,11 +74,29 @@ fun PlayerSheetContent(
     val screenWidth = configuration.screenWidthDp.dp
     val screenHeight = configuration.screenHeightDp.dp
 
+    var isTimerOptionsExpanded by remember { mutableStateOf(false) }
+
+    var currentTime by remember { mutableLongStateOf(System.currentTimeMillis()) }
+    LaunchedEffect(playbackState.sleepTimerEndTime) {
+        if (playbackState.sleepTimerEndTime != null) {
+            while (true) {
+                currentTime = System.currentTimeMillis()
+                delay(1000)
+            }
+        }
+    }
+
+    val remainingTime = playbackState.sleepTimerEndTime?.let { it - currentTime } ?: 0L
+    val sleepTimerProgress = if (playbackState.sleepTimerTotalDuration > 0) {
+        (remainingTime.toFloat() / playbackState.sleepTimerTotalDuration).coerceIn(0f, 1f)
+    } else 0f
+
     Box(
         modifier = modifier
             .fillMaxSize()
             .clickable(enabled = progress < 0.1f, onClick = onExpand)
     ) {
+        // ... rest of Box content ...
         // --- Thumbnail Calculation ---
         val miniSize = 48.dp
         val expandedSize = (screenWidth * 0.8f).coerceAtMost(320.dp)
@@ -288,6 +309,103 @@ fun PlayerSheetContent(
                         color = MaterialTheme.colorScheme.primary,
                         textAlign = TextAlign.Center
                     )
+                }
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                // --- Sleep Timer Controls at Bottom ---
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp),
+                    contentAlignment = Alignment.BottomStart
+                ) {
+                    AnimatedContent(
+                        targetState = isTimerOptionsExpanded,
+                        transitionSpec = {
+                            (slideInHorizontally { -it } + fadeIn())
+                                .togetherWith(slideOutHorizontally { -it } + fadeOut())
+                                .using(SizeTransform(clip = false))
+                        },
+                        label = "TimerMorph"
+                    ) { expanded ->
+                        if (expanded) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(48.dp)
+                                    .horizontalScroll(rememberScrollState()),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                IconButton(onClick = { isTimerOptionsExpanded = false }) {
+                                    Icon(Icons.Default.Close, contentDescription = "Close")
+                                }
+
+                                if (playbackState.sleepTimerEndTime != null) {
+                                    AssistChip(
+                                        onClick = { 
+                                            onCancelSleepTimer()
+                                            isTimerOptionsExpanded = false
+                                        },
+                                        label = { Text("Turn off", color = MaterialTheme.colorScheme.error) },
+                                        leadingIcon = { Icon(Icons.Default.TimerOff, contentDescription = null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(18.dp)) },
+                                        colors = AssistChipDefaults.assistChipColors(
+                                            labelColor = MaterialTheme.colorScheme.error,
+                                            leadingIconContentColor = MaterialTheme.colorScheme.error
+                                        ),
+                                        shape = CircleShape
+                                    )
+                                }
+
+                                listOf(15, 30, 45, 60, 90, 120).forEach { mins ->
+                                    AssistChip(
+                                        onClick = {
+                                            onSetSleepTimer(mins * 60 * 1000L)
+                                            isTimerOptionsExpanded = false
+                                        },
+                                        label = { Text("$mins min") },
+                                        shape = CircleShape
+                                    )
+                                }
+                            }
+                        } else {
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier.size(48.dp)
+                            ) {
+                                if (playbackState.sleepTimerEndTime != null) {
+                                    CircularProgressIndicator(
+                                        progress = { sleepTimerProgress },
+                                        modifier = Modifier.fillMaxSize(),
+                                        color = MaterialTheme.colorScheme.primary,
+                                        strokeWidth = 3.dp,
+                                        strokeCap = StrokeCap.Round
+                                    )
+                                }
+                                IconButton(
+                                    onClick = { isTimerOptionsExpanded = true },
+                                    modifier = Modifier.size(48.dp)
+                                ) {
+                                    if (playbackState.sleepTimerEndTime != null) {
+                                        val mins = (remainingTime / 60000).toInt() + 1
+                                        Text(
+                                            text = mins.toString(),
+                                            style = MaterialTheme.typography.labelLarge,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
+                                    } else {
+                                        Icon(
+                                            imageVector = Icons.Default.Timer,
+                                            contentDescription = "Sleep Timer",
+                                            tint = LocalContentColor.current
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }

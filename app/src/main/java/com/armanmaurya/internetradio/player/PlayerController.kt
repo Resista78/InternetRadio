@@ -13,10 +13,13 @@ import com.google.common.util.concurrent.MoreExecutors
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -143,6 +146,27 @@ class PlayerController @Inject constructor(
         val player = controller ?: return
         player.stop()
         player.clearMediaItems()
+        cancelSleepTimer()
+    }
+
+    private var timerJob: Job? = null
+
+    fun setSleepTimer(durationMillis: Long) {
+        timerJob?.cancel()
+        val endTime = System.currentTimeMillis() + durationMillis
+        _playbackState.update { it.copy(sleepTimerEndTime = endTime, sleepTimerTotalDuration = durationMillis) }
+        
+        timerJob = scope.launch {
+            delay(durationMillis)
+            stop()
+            _playbackState.update { it.copy(sleepTimerEndTime = null, sleepTimerTotalDuration = 0L) }
+        }
+    }
+
+    fun cancelSleepTimer() {
+        timerJob?.cancel()
+        timerJob = null
+        _playbackState.update { it.copy(sleepTimerEndTime = null, sleepTimerTotalDuration = 0L) }
     }
 
     private fun MediaItem.toRadioStation(): RadioStation? {
@@ -154,5 +178,7 @@ data class PlaybackState(
     val currentStation: RadioStation? = null,
     val isPlaying: Boolean = false,
     val isLoading: Boolean = false,
-    val isError: Boolean = false
+    val isError: Boolean = false,
+    val sleepTimerEndTime: Long? = null,
+    val sleepTimerTotalDuration: Long = 0L
 )
