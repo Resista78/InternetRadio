@@ -4,7 +4,7 @@
 
 # InternetRadio
 
-InternetRadio is an Android app for discovering and listening to radio stations from around the world, with features like favorites, recent history, and advanced search by country and language.
+InternetRadio is an Android app for discovering and listening to radio stations from around the world, with features like favorites, recent history, and advanced search by country,language and tags.
 
 </div>
 
