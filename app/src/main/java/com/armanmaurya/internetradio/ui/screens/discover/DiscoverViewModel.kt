@@ -145,14 +145,14 @@ class DiscoverViewModel @Inject constructor(
                 countryCode = countryCode?.takeIf { it.isNotBlank() },
                 language = language?.takeIf { it.isNotBlank() },
                 tagList = tags.joinToString(",").takeIf { it.isNotBlank() },
-                order = if (state.searchQuery.isBlank()) "clickcount" else state.order,
+                order = state.order,
                 reverse = state.reverse,
                 limit = pageSize,
                 offset = currentOffset
             )
 
             result.onSuccess { stations ->
-                _uiState.update { it.copy(stations = stations, isLoading = false, canLoadMore = stations.size >= pageSize) }
+                _uiState.update { it.copy(stations = stations.distinctBy { it.stationUuid }, isLoading = false, canLoadMore = stations.size >= pageSize) }
             }
             .onFailure { error ->
                 _uiState.update { it.copy(error = error.message, isLoading = false) }
@@ -161,11 +161,20 @@ class DiscoverViewModel @Inject constructor(
     }
 
     fun loadMoreStations() {
-        val state = _uiState.value
-        if (state.isLoading || state.isNextPageLoading || !state.canLoadMore) return
+        var shouldProceed = false
+        _uiState.update { 
+            if (!it.isLoading && !it.isNextPageLoading && it.canLoadMore) {
+                shouldProceed = true
+                it.copy(isNextPageLoading = true)
+            } else {
+                it
+            }
+        }
+
+        if (!shouldProceed) return
 
         viewModelScope.launch {
-            _uiState.update { it.copy(isNextPageLoading = true) }
+            val state = _uiState.value
             currentOffset += pageSize
             
             val result = if (state.searchQuery.isBlank()) {
@@ -173,7 +182,7 @@ class DiscoverViewModel @Inject constructor(
                     countryCode = state.selectedCountryCode?.takeIf { it.isNotBlank() },
                     language = state.selectedLanguage?.takeIf { it.isNotBlank() },
                     tagList = state.selectedTags.joinToString(",").takeIf { it.isNotBlank() },
-                    order = if (state.searchQuery.isBlank()) "clickcount" else state.order,
+                    order = state.order,
                     reverse = state.reverse,
                     limit = pageSize,
                     offset = currentOffset
@@ -193,7 +202,7 @@ class DiscoverViewModel @Inject constructor(
             result.onSuccess { newStations ->
                 _uiState.update { 
                     it.copy(
-                        stations = it.stations + newStations,
+                        stations = (it.stations + newStations).distinctBy { station -> station.stationUuid },
                         isNextPageLoading = false,
                         canLoadMore = newStations.size >= pageSize
                     )
@@ -236,7 +245,7 @@ class DiscoverViewModel @Inject constructor(
                 offset = currentOffset
             )
                 .onSuccess { stations ->
-                    _uiState.update { it.copy(stations = stations, isLoading = false, canLoadMore = stations.size >= pageSize) }
+                    _uiState.update { it.copy(stations = stations.distinctBy { it.stationUuid }, isLoading = false, canLoadMore = stations.size >= pageSize) }
                 }
                 .onFailure { error ->
                     _uiState.update { it.copy(error = error.message, isLoading = false) }

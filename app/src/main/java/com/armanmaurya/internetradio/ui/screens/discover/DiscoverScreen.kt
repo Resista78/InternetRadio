@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -332,10 +333,18 @@ private fun SearchFilters(
                     selected = false,
                     onClick = { orderExpanded = true },
                     label = {
-                        Text(
-                            text = orderOptions.find { it.first == order }?.second ?: order,
-                            style = MaterialTheme.typography.labelMedium
-                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = orderOptions.find { it.first == order }?.second ?: order,
+                                style = MaterialTheme.typography.labelMedium
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Icon(
+                                imageVector = if (reverse) Icons.Default.ArrowDownward else Icons.Default.ArrowUpward,
+                                contentDescription = if (reverse) "Descending" else "Ascending",
+                                modifier = Modifier.size(14.dp)
+                            )
+                        }
                     },
                     leadingIcon = {
                         Icon(
@@ -343,9 +352,6 @@ private fun SearchFilters(
                             contentDescription = null,
                             modifier = Modifier.size(FilterChipDefaults.IconSize)
                         )
-                    },
-                    trailingIcon = {
-                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = orderExpanded)
                     },
                     colors = FilterChipDefaults.filterChipColors(
                         containerColor = Color.Transparent,
@@ -362,24 +368,26 @@ private fun SearchFilters(
                         DropdownMenuItem(
                             text = { Text(label) },
                             onClick = {
-                                onOrderChange(value)
+                                if (order == value) {
+                                    onReverseChange(!reverse)
+                                } else {
+                                    onOrderChange(value)
+                                }
                                 orderExpanded = false
+                            },
+                            trailingIcon = {
+                                if (order == value) {
+                                    Icon(
+                                        imageVector = if (reverse) Icons.Default.ArrowDownward else Icons.Default.ArrowUpward,
+                                        contentDescription = if (reverse) "Descending" else "Ascending",
+                                        modifier = Modifier.size(16.dp),
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                }
                             }
                         )
                     }
                 }
-            }
-
-            IconButton(
-                onClick = { onReverseChange(!reverse) },
-                modifier = Modifier.size(32.dp)
-            ) {
-                Icon(
-                    imageVector = if (reverse) Icons.Default.ArrowDownward else Icons.Default.ArrowUpward,
-                    contentDescription = if (reverse) "Descending" else "Ascending",
-                    modifier = Modifier.size(20.dp),
-                    tint = MaterialTheme.colorScheme.primary
-                )
             }
         }
     }
@@ -432,6 +440,7 @@ private fun StationsList(
                 onReverseChange = onReverseChange,
                 modifier = Modifier
                     .fillMaxWidth()
+                    .padding(vertical = 8.dp)
             )
         }
 

@@ -2,6 +2,7 @@ package com.armanmaurya.internetradio.ui.screens.recent
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
@@ -30,84 +31,88 @@ fun RecentContent(
     val recentStations by viewModel.recentStations.collectAsStateWithLifecycle()
     val useFilter by viewModel.useFilter.collectAsStateWithLifecycle()
 
-    Column(modifier = modifier.fillMaxSize()) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.End
-        ) {
-            FilterChip(
-                selected = useFilter,
-                onClick = { viewModel.toggleFilter() },
-                label = { 
-                    Text(
-                        text = if (useFilter) "Filters Active" else "Use Filters",
-                        style = MaterialTheme.typography.labelMedium
-                    ) 
-                },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.FilterList,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    )
-                },
-                trailingIcon = if (useFilter) {
-                    {
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(3),
+        modifier = modifier.fillMaxSize(),
+        contentPadding = PaddingValues(
+            start = 16.dp,
+            end = 16.dp,
+            bottom = 16.dp + contentPadding.calculateBottomPadding()
+        ),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        item(span = { GridItemSpan(maxLineSpan) }) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.End
+            ) {
+                FilterChip(
+                    selected = useFilter,
+                    onClick = { viewModel.toggleFilter() },
+                    label = { 
+                        Text(
+                            text = if (useFilter) "Filters Active" else "Use Filters",
+                            style = MaterialTheme.typography.labelMedium
+                        ) 
+                    },
+                    leadingIcon = {
                         Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = "Clear",
+                            imageVector = Icons.Default.FilterList,
+                            contentDescription = null,
                             modifier = Modifier.size(18.dp)
                         )
-                    }
-                } else null,
-                colors = FilterChipDefaults.filterChipColors(
-                    containerColor = Color.Transparent,
-                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                    labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
-                ),
-                border = null
-            )
+                    },
+                    trailingIcon = if (useFilter) {
+                        {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Clear",
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    } else null,
+                    colors = FilterChipDefaults.filterChipColors(
+                        containerColor = Color.Transparent,
+                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    ),
+                    border = null
+                )
+            }
         }
 
         if (recentStations.isEmpty()) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = if (useFilter) "No recently played stations matching your filters." else "No recently played stations",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        } else {
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(3),
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(
-                    start = 16.dp,
-                    end = 16.dp,
-                    bottom = 16.dp + contentPadding.calculateBottomPadding()
-                ),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(
-                    items = recentStations,
-                    key = { it.stationUuid }
-                ) { station ->
-                    StationCard(
-                        station = station,
-                        onClick = { onStationClick(station) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .animateItem()
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 64.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = if (useFilter) "No recently played stations matching your filters." else "No recently played stations",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
+            }
+        } else {
+            items(
+                items = recentStations,
+                key = { it.stationUuid }
+            ) { station ->
+                StationCard(
+                    station = station,
+                    onClick = { onStationClick(station) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .animateItem()
+                )
             }
         }
     }
