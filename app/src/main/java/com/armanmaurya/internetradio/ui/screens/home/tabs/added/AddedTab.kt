@@ -1,4 +1,4 @@
-package com.armanmaurya.internetradio.ui.screens.favorites
+package com.armanmaurya.internetradio.ui.screens.home.tabs.added
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -14,22 +14,23 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.armanmaurya.internetradio.R
 import com.armanmaurya.internetradio.data.model.RadioStation
-import com.armanmaurya.internetradio.ui.components.StationCard
+import com.armanmaurya.internetradio.ui.screens.home.components.StationCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FavoritesContent(
+fun AddedContent(
     onStationClick: (RadioStation) -> Unit,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp),
-    viewModel: FavoritesViewModel = hiltViewModel()
+    viewModel: AddedViewModel = hiltViewModel()
 ) {
-    val favorites by viewModel.favorites.collectAsStateWithLifecycle()
+    val userStations by viewModel.userStations.collectAsStateWithLifecycle()
     val useFilter by viewModel.useFilter.collectAsStateWithLifecycle()
 
     LazyVerticalGrid(
@@ -41,7 +42,7 @@ fun FavoritesContent(
             bottom = 16.dp + contentPadding.calculateBottomPadding()
         ),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         item(span = { GridItemSpan(maxLineSpan) }) {
             Row(
@@ -87,7 +88,7 @@ fun FavoritesContent(
             }
         }
 
-        if (favorites.isEmpty()) {
+        if (userStations.isEmpty()) {
             item(span = { GridItemSpan(maxLineSpan) }) {
                 Box(
                     modifier = Modifier
@@ -97,27 +98,26 @@ fun FavoritesContent(
                 ) {
                     Text(
                         text = if (useFilter) 
-                            "No favorite stations matching your filters." 
+                            "No added stations matching your filters." 
                         else 
-                            "No favorite stations yet.\nHeart your favorite stations to see them here!",
+                            stringResource(R.string.no_added_stations),
                         style = MaterialTheme.typography.bodyLarge,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(32.dp),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
         } else {
             items(
-                items = favorites,
+                items = userStations,
                 key = { it.stationUuid }
             ) { station ->
                 StationCard(
                     station = station,
                     onClick = { onStationClick(station) },
+                    onDeleteClick = { viewModel.deleteStation(station.stationUuid) },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .animateItem(),
+                        .animateItem()
                 )
             }
         }

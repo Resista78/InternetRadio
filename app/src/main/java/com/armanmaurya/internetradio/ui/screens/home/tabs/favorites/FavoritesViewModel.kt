@@ -1,4 +1,4 @@
-package com.armanmaurya.internetradio.ui.screens.favorites
+package com.armanmaurya.internetradio.ui.screens.home.tabs.favorites
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

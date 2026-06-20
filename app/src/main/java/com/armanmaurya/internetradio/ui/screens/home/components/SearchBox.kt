@@ -1,4 +1,4 @@
-package com.armanmaurya.internetradio.ui.components
+package com.armanmaurya.internetradio.ui.screens.home.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
@@ -30,6 +30,9 @@ import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -41,9 +44,6 @@ import androidx.compose.ui.unit.sp
 fun RadioSearchBar(
     query: String,
     onQueryChange: (String) -> Unit,
-    isSearchActive: Boolean,
-    isSearchExpanded: Boolean,
-    onSearchExpandedChange: (Boolean) -> Unit,
     onSearchCleared: () -> Unit,
     onCountryClick: () -> Unit,
     onLanguageClick: () -> Unit,
@@ -55,6 +55,10 @@ fun RadioSearchBar(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit = {}
 ) {
+    // Search expanded/active state lives entirely inside this component
+    var isSearchExpanded by remember { mutableStateOf(false) }
+    val isSearchActive = query.isNotBlank()
+
     val horizontalPadding by animateDpAsState(
         targetValue = if (isSearchExpanded) 0.dp else 16.dp,
         label = "SearchBarPadding"
@@ -65,13 +69,13 @@ fun RadioSearchBar(
             SearchBarDefaults.InputField(
                 query = query,
                 onQueryChange = onQueryChange,
-                onSearch = { onSearchExpandedChange(false) },
+                onSearch = { isSearchExpanded = false },
                 expanded = isSearchExpanded,
-                onExpandedChange = onSearchExpandedChange,
+                onExpandedChange = { isSearchExpanded = it },
                 placeholder = { Text("Search stations") },
                 leadingIcon = {
                     if (isSearchExpanded) {
-                        IconButton(onClick = { onSearchExpandedChange(false) }) {
+                        IconButton(onClick = { isSearchExpanded = false }) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                         }
                     } else {
@@ -80,7 +84,10 @@ fun RadioSearchBar(
                 },
                 trailingIcon = {
                     if (isSearchActive) {
-                        IconButton(onClick = onSearchCleared) {
+                        IconButton(onClick = {
+                            onSearchCleared()
+                            isSearchExpanded = false
+                        }) {
                             Icon(Icons.Default.Close, contentDescription = "Clear search")
                         }
                     } else {
@@ -135,11 +142,11 @@ fun RadioSearchBar(
                                     Icon(
                                         imageVector = Icons.Default.Public,
                                         contentDescription = "Select Country",
-                                        tint = if (!selectedCountryCode.isNullOrBlank()) 
-                                            MaterialTheme.colorScheme.primary 
-                                        else 
+                                        tint = if (!selectedCountryCode.isNullOrBlank())
+                                            MaterialTheme.colorScheme.primary
+                                        else
                                             MaterialTheme.colorScheme.onSurfaceVariant
-                                )
+                                    )
                                     if (!selectedCountryCode.isNullOrBlank()) {
                                         Text(
                                             text = selectedCountryCode,
@@ -156,7 +163,6 @@ fun RadioSearchBar(
                                 }
                             }
 
-
                             AnimatedVisibility(
                                 visible = !isSearchExpanded,
                                 enter = expandHorizontally() + fadeIn(),
@@ -172,7 +178,7 @@ fun RadioSearchBar(
             )
         },
         expanded = isSearchExpanded,
-        onExpandedChange = onSearchExpandedChange,
+        onExpandedChange = { isSearchExpanded = it },
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = horizontalPadding)

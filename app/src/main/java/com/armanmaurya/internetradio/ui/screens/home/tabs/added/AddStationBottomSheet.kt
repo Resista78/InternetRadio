@@ -1,4 +1,4 @@
-package com.armanmaurya.internetradio.ui.screens.added
+package com.armanmaurya.internetradio.ui.screens.home.tabs.added
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets

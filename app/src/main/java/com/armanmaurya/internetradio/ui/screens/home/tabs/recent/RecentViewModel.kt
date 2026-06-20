@@ -1,4 +1,4 @@
-package com.armanmaurya.internetradio.ui.screens.recent
+package com.armanmaurya.internetradio.ui.screens.home.tabs.recent
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

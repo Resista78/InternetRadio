@@ -1,4 +1,4 @@
-package com.armanmaurya.internetradio.ui.screens.added
+package com.armanmaurya.internetradio.ui.screens.home.tabs.added
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

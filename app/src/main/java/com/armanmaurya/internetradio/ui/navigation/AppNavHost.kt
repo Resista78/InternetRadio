@@ -7,14 +7,14 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.armanmaurya.internetradio.ui.screens.discover.DiscoverScreen
-import com.armanmaurya.internetradio.ui.screens.country.CountrySelectScreen
-import com.armanmaurya.internetradio.ui.screens.country.LanguageSelectScreen
-import com.armanmaurya.internetradio.ui.screens.tag.TagSelectScreen
+import com.armanmaurya.internetradio.ui.screens.home.HomeScreen
+import com.armanmaurya.internetradio.ui.screens.selectcountry.CountrySelectScreen
+import com.armanmaurya.internetradio.ui.screens.selectlanguage.LanguageSelectScreen
+import com.armanmaurya.internetradio.ui.screens.selecttag.TagSelectScreen
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.armanmaurya.internetradio.ui.screens.discover.DiscoverViewModel
+import com.armanmaurya.internetradio.ui.screens.home.HomeViewModel
 import com.armanmaurya.internetradio.ui.screens.settings.SettingsScreen
-import com.armanmaurya.internetradio.ui.screens.settings.AboutScreen
+import com.armanmaurya.internetradio.ui.screens.about.AboutScreen
 import androidx.navigation.navArgument
 import androidx.navigation.NavType
 import androidx.compose.animation.core.tween
@@ -27,7 +27,7 @@ fun AppNavHost(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
-    val discoverViewModel: DiscoverViewModel = hiltViewModel()
+    val discoverViewModel: HomeViewModel = hiltViewModel()
 
     NavHost(
         navController = navController,
@@ -59,7 +59,7 @@ fun AppNavHost(
         }
     ) {
         composable(AppDestination.Discover.route) {
-            DiscoverScreen(
+            HomeScreen(
                 viewModel = discoverViewModel,
                 onSettingsClick = { navController.navigate(AppDestination.Settings.route) },
                 onCountryClick = { 

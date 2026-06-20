@@ -1,4 +1,4 @@
-package com.armanmaurya.internetradio.ui.screens.tag
+package com.armanmaurya.internetradio.ui.screens.selecttag
 
 import androidx.compose.animation.*
 import androidx.compose.foundation.background

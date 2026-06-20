@@ -1,4 +1,4 @@
-package com.armanmaurya.internetradio.ui.screens.recent
+package com.armanmaurya.internetradio.ui.screens.home.tabs.recent
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.armanmaurya.internetradio.data.model.RadioStation
-import com.armanmaurya.internetradio.ui.components.StationCard
+import com.armanmaurya.internetradio.ui.screens.home.components.StationCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

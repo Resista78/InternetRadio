@@ -1,4 +1,4 @@
-package com.armanmaurya.internetradio.ui.screens.country
+package com.armanmaurya.internetradio.ui.screens.selectlanguage
 
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
@@ -11,7 +11,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -23,27 +22,26 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.armanmaurya.internetradio.data.model.Country
+import com.armanmaurya.internetradio.data.model.Language
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CountrySelectScreen(
-    onCountrySelected: (Country) -> Unit,
+fun LanguageSelectScreen(
+    onLanguageSelected: (Language) -> Unit,
     onBackClick: () -> Unit,
-    selectedCountryCode: String? = null,
+    selectedLanguage: String? = null,
     contentPadding: PaddingValues = PaddingValues(0.dp),
-    viewModel: CountrySelectViewModel = hiltViewModel()
+    viewModel: LanguageSelectViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     
-    val filteredCountries = remember(uiState.countries, uiState.searchQuery) {
+    val filteredLanguages = remember(uiState.languages, uiState.searchQuery) {
         if (uiState.searchQuery.isBlank()) {
-            uiState.countries
+            uiState.languages
         } else {
-            uiState.countries.filter { 
-                it.name.contains(uiState.searchQuery, ignoreCase = true) ||
-                it.isoCode.contains(uiState.searchQuery, ignoreCase = true)
+            uiState.languages.filter { 
+                it.name.contains(uiState.searchQuery, ignoreCase = true)
             }
         }
     }
@@ -58,12 +56,11 @@ fun CountrySelectScreen(
         }
     }
 
-    // Scroll to selected country
-    LaunchedEffect(uiState.isLoading, selectedCountryCode) {
-        if (!hasAutoScrolled && !uiState.isLoading && selectedCountryCode != null && uiState.countries.isNotEmpty()) {
-            val index = filteredCountries.indexOfFirst { it.isoCode == selectedCountryCode }
+    // Scroll to selected language
+    LaunchedEffect(uiState.isLoading, selectedLanguage) {
+        if (!hasAutoScrolled && !uiState.isLoading && selectedLanguage != null && uiState.languages.isNotEmpty()) {
+            val index = filteredLanguages.indexOfFirst { it.name == selectedLanguage }
             if (index >= 0) {
-                // Small delay to ensure layout is ready
                 delay(100)
                 listState.animateScrollToItem(index + 1)
                 hasAutoScrolled = true
@@ -71,8 +68,8 @@ fun CountrySelectScreen(
         }
     }
 
-    val totalStations = remember(uiState.countries) {
-        uiState.countries.sumOf { it.stationCount }
+    val totalStations = remember(uiState.languages) {
+        uiState.languages.sumOf { it.stationCount }
     }
 
     Scaffold(
@@ -93,7 +90,7 @@ fun CountrySelectScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .focusRequester(focusRequester),
-                                placeholder = { Text("Search countries...") },
+                                placeholder = { Text("Search languages...") },
                                 singleLine = true,
                                 colors = TextFieldDefaults.colors(
                                     focusedContainerColor = Color.Transparent,
@@ -104,7 +101,7 @@ fun CountrySelectScreen(
                                 )
                             )
                         } else {
-                            Text("Select Country")
+                            Text("Select Language")
                         }
                     }
                 },
@@ -149,19 +146,19 @@ fun CountrySelectScreen(
                         bottom = innerPadding.calculateBottomPadding() + contentPadding.calculateBottomPadding()
                     )
                 ) {
-                    item {
-                        CountryItem(
-                            country = Country(name = "All Countries", isoCode = "", stationCount = totalStations),
-                            isSelected = selectedCountryCode.isNullOrBlank(),
-                            onClick = { onCountrySelected(Country(name = "All Countries", isoCode = "", stationCount = totalStations)) }
+                    item(key = "all_languages") {
+                        LanguageItem(
+                            language = Language(name = "All Languages", isoCode = "", stationCount = totalStations),
+                            isSelected = selectedLanguage.isNullOrBlank(),
+                            onClick = { onLanguageSelected(Language(name = "All Languages", isoCode = "", stationCount = totalStations)) }
                         )
                     }
-                    itemsIndexed(filteredCountries, key = { _, country -> country.isoCode }) { _, country ->
-                        val isSelected = country.isoCode == selectedCountryCode
-                        CountryItem(
-                            country = country,
+                    itemsIndexed(filteredLanguages, key = { _, language -> language.name }) { _, language ->
+                        val isSelected = language.name == selectedLanguage
+                        LanguageItem(
+                            language = language,
                             isSelected = isSelected,
-                            onClick = { onCountrySelected(country) },
+                            onClick = { onLanguageSelected(language) },
                             modifier = if (hasAutoScrolled) Modifier.animateItem() else Modifier
                         )
                     }
@@ -172,8 +169,8 @@ fun CountrySelectScreen(
 }
 
 @Composable
-private fun CountryItem(
-    country: Country,
+private fun LanguageItem(
+    language: Language,
     isSelected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -181,12 +178,12 @@ private fun CountryItem(
     ListItem(
         headlineContent = { 
             Text(
-                text = country.name,
+                text = language.name,
                 color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                 style = if (isSelected) MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.primary) else MaterialTheme.typography.bodyLarge
             ) 
         },
-        supportingContent = { Text("${country.stationCount} stations") },
+        supportingContent = { Text("${language.stationCount} stations") },
         trailingContent = { 
             if (isSelected) {
                 Icon(
@@ -194,8 +191,8 @@ private fun CountryItem(
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary
                 )
-            } else if (country.isoCode.isNotBlank()) {
-                Text(country.isoCode)
+            } else if (!language.isoCode.isNullOrBlank()) {
+                Text(language.isoCode.uppercase())
             }
         },
         modifier = modifier

@@ -1,8 +1,8 @@
-package com.armanmaurya.internetradio.ui.screens.country
+package com.armanmaurya.internetradio.ui.screens.selectlanguage
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.armanmaurya.internetradio.data.model.Country
+import com.armanmaurya.internetradio.data.model.Language
 import com.armanmaurya.internetradio.data.repository.StationRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,8 +12,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-data class CountrySelectUiState(
-    val countries: List<Country> = emptyList(),
+data class LanguageSelectUiState(
+    val languages: List<Language> = emptyList(),
     val isLoading: Boolean = false,
     val error: String? = null,
     val searchQuery: String = "",
@@ -21,23 +21,23 @@ data class CountrySelectUiState(
 )
 
 @HiltViewModel
-class CountrySelectViewModel @Inject constructor(
+class LanguageSelectViewModel @Inject constructor(
     private val repository: StationRepository
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(CountrySelectUiState())
-    val uiState: StateFlow<CountrySelectUiState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(LanguageSelectUiState())
+    val uiState: StateFlow<LanguageSelectUiState> = _uiState.asStateFlow()
 
     init {
-        loadCountries()
+        loadLanguages()
     }
 
-    private fun loadCountries() {
+    private fun loadLanguages() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
-            repository.getCountries()
-                .onSuccess { countries ->
-                    _uiState.update { it.copy(countries = countries, isLoading = false) }
+            repository.getLanguages()
+                .onSuccess { languages ->
+                    _uiState.update { it.copy(languages = languages, isLoading = false) }
                 }
                 .onFailure { error ->
                     _uiState.update { it.copy(error = error.message, isLoading = false) }
