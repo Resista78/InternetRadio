@@ -44,6 +44,8 @@ import androidx.compose.ui.unit.sp
 fun RadioSearchBar(
     query: String,
     onQueryChange: (String) -> Unit,
+    isSearchExpanded: Boolean,
+    onExpandedChange: (Boolean) -> Unit,
     onSearchCleared: () -> Unit,
     onCountryClick: () -> Unit,
     onLanguageClick: () -> Unit,
@@ -55,8 +57,6 @@ fun RadioSearchBar(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit = {}
 ) {
-    // Search expanded/active state lives entirely inside this component
-    var isSearchExpanded by remember { mutableStateOf(false) }
     val isSearchActive = query.isNotBlank()
 
     val horizontalPadding by animateDpAsState(
@@ -69,13 +69,13 @@ fun RadioSearchBar(
             SearchBarDefaults.InputField(
                 query = query,
                 onQueryChange = onQueryChange,
-                onSearch = { isSearchExpanded = false },
+                onSearch = { onExpandedChange(false) },
                 expanded = isSearchExpanded,
-                onExpandedChange = { isSearchExpanded = it },
+                onExpandedChange = onExpandedChange,
                 placeholder = { Text("Search") },
                 leadingIcon = {
                     if (isSearchExpanded) {
-                        IconButton(onClick = { isSearchExpanded = false }) {
+                        IconButton(onClick = { onExpandedChange(false) }) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                         }
                     } else {
@@ -86,7 +86,7 @@ fun RadioSearchBar(
                     if (isSearchActive) {
                         IconButton(onClick = {
                             onSearchCleared()
-                            isSearchExpanded = false
+                            onExpandedChange(false)
                         }) {
                             Icon(Icons.Default.Close, contentDescription = "Clear search")
                         }
@@ -178,7 +178,7 @@ fun RadioSearchBar(
             )
         },
         expanded = isSearchExpanded,
-        onExpandedChange = { isSearchExpanded = it },
+        onExpandedChange = onExpandedChange,
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = horizontalPadding)

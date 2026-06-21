@@ -25,7 +25,7 @@ class FavoritesViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     val isGridView: StateFlow<Boolean> = settingsRepository.appPreferencesFlow
-        .map { it.isGridView }
+        .map { it.isGridViewFavorites }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
     val favorites: StateFlow<List<RadioStation>> = combine(
@@ -59,6 +59,6 @@ class FavoritesViewModel @Inject constructor(
     }
 
     fun onGridViewChange(isGrid: Boolean) {
-        viewModelScope.launch { settingsRepository.setGridView(isGrid) }
+        viewModelScope.launch { settingsRepository.setGridViewFavorites(isGrid) }
     }
 }

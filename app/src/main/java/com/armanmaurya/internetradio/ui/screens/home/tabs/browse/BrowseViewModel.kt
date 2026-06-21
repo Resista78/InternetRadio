@@ -53,7 +53,7 @@ class BrowseViewModel @Inject constructor(
                     selectedTags = preferences.selectedTags,
                     order = preferences.order,
                     reverse = preferences.reverse,
-                    isGridView = preferences.isGridView
+                    isGridView = preferences.isGridViewBrowse
                 )
             }
             .distinctUntilChanged()
@@ -250,7 +250,7 @@ class BrowseViewModel @Inject constructor(
     }
 
     fun onGridViewChange(isGrid: Boolean) {
-        viewModelScope.launch { settingsRepository.setGridView(isGrid) }
+        viewModelScope.launch { settingsRepository.setGridViewBrowse(isGrid) }
     }
 
     /** Called by HomeScreen to forward the search query from HomeViewModel */

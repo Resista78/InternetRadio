@@ -21,7 +21,7 @@ class AddedViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     val isGridView: StateFlow<Boolean> = settingsRepository.appPreferencesFlow
-        .map { it.isGridView }
+        .map { it.isGridViewAdded }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
     val userStations: StateFlow<List<RadioStation>> = combine(
@@ -83,6 +83,6 @@ class AddedViewModel @Inject constructor(
     }
 
     fun onGridViewChange(isGrid: Boolean) {
-        viewModelScope.launch { settingsRepository.setGridView(isGrid) }
+        viewModelScope.launch { settingsRepository.setGridViewAdded(isGrid) }
     }
 }

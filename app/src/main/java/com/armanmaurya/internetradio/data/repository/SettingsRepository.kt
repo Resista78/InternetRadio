@@ -40,7 +40,10 @@ class SettingsRepository @Inject constructor(
         val USE_FILTER_ON_FAVORITES = booleanPreferencesKey("use_filter_on_favorites")
         val USE_FILTER_ON_ADDED = booleanPreferencesKey("use_filter_on_added")
         val RESUME_STATION = stringPreferencesKey("resume_station")
-        val IS_GRID_VIEW = booleanPreferencesKey("is_grid_view")
+        val IS_GRID_VIEW_BROWSE = booleanPreferencesKey("is_grid_view_browse")
+        val IS_GRID_VIEW_RECENT = booleanPreferencesKey("is_grid_view_recent")
+        val IS_GRID_VIEW_FAVORITES = booleanPreferencesKey("is_grid_view_favorites")
+        val IS_GRID_VIEW_ADDED = booleanPreferencesKey("is_grid_view_added")
     }
 
     val appPreferencesFlow: Flow<AppPreferences> = context.dataStore.data
@@ -67,7 +70,10 @@ class SettingsRepository @Inject constructor(
             val useFilterOnFavorites = preferences[PreferencesKeys.USE_FILTER_ON_FAVORITES] ?: false
             val useFilterOnAdded = preferences[PreferencesKeys.USE_FILTER_ON_ADDED] ?: false
             val resumeStation = preferences[PreferencesKeys.RESUME_STATION]
-            val isGridView = preferences[PreferencesKeys.IS_GRID_VIEW] ?: true
+            val isGridViewBrowse = preferences[PreferencesKeys.IS_GRID_VIEW_BROWSE] ?: true
+            val isGridViewRecent = preferences[PreferencesKeys.IS_GRID_VIEW_RECENT] ?: true
+            val isGridViewFavorites = preferences[PreferencesKeys.IS_GRID_VIEW_FAVORITES] ?: true
+            val isGridViewAdded = preferences[PreferencesKeys.IS_GRID_VIEW_ADDED] ?: true
             
             AppPreferences(
                 themeMode = themeMode, 
@@ -83,7 +89,10 @@ class SettingsRepository @Inject constructor(
                 useFilterOnFavorites = useFilterOnFavorites,
                 useFilterOnAdded = useFilterOnAdded,
                 resumeStation = resumeStation,
-                isGridView = isGridView
+                isGridViewBrowse = isGridViewBrowse,
+                isGridViewRecent = isGridViewRecent,
+                isGridViewFavorites = isGridViewFavorites,
+                isGridViewAdded = isGridViewAdded
             )
         }
 
@@ -171,9 +180,27 @@ class SettingsRepository @Inject constructor(
         }
     }
 
-    suspend fun setGridView(isGrid: Boolean) {
+    suspend fun setGridViewBrowse(isGrid: Boolean) {
         context.dataStore.edit { preferences ->
-            preferences[PreferencesKeys.IS_GRID_VIEW] = isGrid
+            preferences[PreferencesKeys.IS_GRID_VIEW_BROWSE] = isGrid
+        }
+    }
+
+    suspend fun setGridViewRecent(isGrid: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.IS_GRID_VIEW_RECENT] = isGrid
+        }
+    }
+
+    suspend fun setGridViewFavorites(isGrid: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.IS_GRID_VIEW_FAVORITES] = isGrid
+        }
+    }
+
+    suspend fun setGridViewAdded(isGrid: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.IS_GRID_VIEW_ADDED] = isGrid
         }
     }
 }

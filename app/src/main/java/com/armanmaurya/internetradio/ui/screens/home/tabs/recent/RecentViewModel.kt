@@ -21,7 +21,7 @@ class RecentViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     val isGridView: StateFlow<Boolean> = settingsRepository.appPreferencesFlow
-        .map { it.isGridView }
+        .map { it.isGridViewRecent }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
     val recentStations: StateFlow<List<RadioStation>> = combine(
@@ -55,6 +55,6 @@ class RecentViewModel @Inject constructor(
     }
 
     fun onGridViewChange(isGrid: Boolean) {
-        viewModelScope.launch { settingsRepository.setGridView(isGrid) }
+        viewModelScope.launch { settingsRepository.setGridViewRecent(isGrid) }
     }
 }

@@ -16,5 +16,8 @@ data class AppPreferences(
     val useFilterOnFavorites: Boolean = false,
     val useFilterOnAdded: Boolean = false,
     val resumeStation: String? = null,
-    val isGridView: Boolean = true
+    val isGridViewBrowse: Boolean = true,
+    val isGridViewRecent: Boolean = true,
+    val isGridViewFavorites: Boolean = true,
+    val isGridViewAdded: Boolean = true
 )
