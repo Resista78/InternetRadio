@@ -21,6 +21,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.armanmaurya.internetradio.R
 import com.armanmaurya.internetradio.data.model.RadioStation
 import com.armanmaurya.internetradio.ui.screens.home.components.StationCard
+import com.armanmaurya.internetradio.ui.screens.home.components.StationListCard
+import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material.icons.filled.ViewList
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,9 +35,10 @@ fun AddedContent(
 ) {
     val userStations by viewModel.userStations.collectAsStateWithLifecycle()
     val useFilter by viewModel.useFilter.collectAsStateWithLifecycle()
+    val isGridView by viewModel.isGridView.collectAsStateWithLifecycle()
 
     LazyVerticalGrid(
-        columns = GridCells.Fixed(3),
+        columns = if (isGridView) GridCells.Fixed(3) else GridCells.Fixed(1),
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(
             start = 16.dp,
@@ -50,8 +54,15 @@ fun AddedContent(
                     .fillMaxWidth()
                     .padding(vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.End
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
+                IconButton(onClick = { viewModel.onGridViewChange(!isGridView) }) {
+                    Icon(
+                        imageVector = if (isGridView) Icons.Default.ViewList else Icons.Default.GridView,
+                        contentDescription = "Toggle View"
+                    )
+                }
+
                 FilterChip(
                     selected = useFilter,
                     onClick = { viewModel.toggleFilter() },
@@ -111,14 +122,25 @@ fun AddedContent(
                 items = userStations,
                 key = { it.stationUuid }
             ) { station ->
-                StationCard(
-                    station = station,
-                    onClick = { onStationClick(station) },
-                    onDeleteClick = { viewModel.deleteStation(station.stationUuid) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .animateItem()
-                )
+                if (isGridView) {
+                    StationCard(
+                        station = station,
+                        onClick = { onStationClick(station) },
+                        onDeleteClick = { viewModel.deleteStation(station.stationUuid) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .animateItem()
+                    )
+                } else {
+                    StationListCard(
+                        station = station,
+                        onClick = { onStationClick(station) },
+                        onDeleteClick = { viewModel.deleteStation(station.stationUuid) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .animateItem()
+                    )
+                }
             }
         }
     }

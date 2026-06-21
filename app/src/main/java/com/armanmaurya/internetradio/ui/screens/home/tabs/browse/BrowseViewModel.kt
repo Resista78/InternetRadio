@@ -24,6 +24,7 @@ data class BrowseUiState(
     val selectedTags: Set<String> = emptySet(),
     val order: String = "votes",
     val reverse: Boolean = true,
+    val isGridView: Boolean = true,
 )
 
 @HiltViewModel
@@ -51,7 +52,8 @@ class BrowseViewModel @Inject constructor(
                     selectedLanguage = preferences.selectedLanguage,
                     selectedTags = preferences.selectedTags,
                     order = preferences.order,
-                    reverse = preferences.reverse
+                    reverse = preferences.reverse,
+                    isGridView = preferences.isGridView
                 )
             }
             .distinctUntilChanged()
@@ -62,7 +64,8 @@ class BrowseViewModel @Inject constructor(
                         selectedLanguage = params.selectedLanguage,
                         selectedTags = params.selectedTags,
                         order = params.order,
-                        reverse = params.reverse
+                        reverse = params.reverse,
+                        isGridView = params.isGridView
                     )
                 }
                 if (params.selectedCountryCode == null) {
@@ -246,6 +249,10 @@ class BrowseViewModel @Inject constructor(
         viewModelScope.launch { settingsRepository.setSortReverse(reverse) }
     }
 
+    fun onGridViewChange(isGrid: Boolean) {
+        viewModelScope.launch { settingsRepository.setGridView(isGrid) }
+    }
+
     /** Called by HomeScreen to forward the search query from HomeViewModel */
     fun onSearchQueryChange(query: String) {
         _uiState.update {
@@ -261,6 +268,7 @@ class BrowseViewModel @Inject constructor(
         val selectedLanguage: String?,
         val selectedTags: Set<String>,
         val order: String,
-        val reverse: Boolean
+        val reverse: Boolean,
+        val isGridView: Boolean
     )
 }

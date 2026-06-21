@@ -72,7 +72,7 @@ fun RadioSearchBar(
                 onSearch = { isSearchExpanded = false },
                 expanded = isSearchExpanded,
                 onExpandedChange = { isSearchExpanded = it },
-                placeholder = { Text("Search stations") },
+                placeholder = { Text("Search") },
                 leadingIcon = {
                     if (isSearchExpanded) {
                         IconButton(onClick = { isSearchExpanded = false }) {

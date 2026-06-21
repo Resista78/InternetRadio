@@ -109,7 +109,8 @@ fun PlayerSheetContent(
         
         // Expanded position
         val expandedX = (screenWidth - expandedSize) / 2
-        val expandedY = 100.dp
+        val statusBarPadding = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+        val expandedY = 100.dp + statusBarPadding
         
         val currentX = lerp(miniX, expandedX, progress)
         val currentY = lerp(miniY, expandedY, progress)
@@ -157,7 +158,7 @@ fun PlayerSheetContent(
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        text = if (playbackState.isLoading) "Buffering..." else buildString {
+                        text = playbackState.currentTrack ?: if (playbackState.isLoading) "Buffering..." else buildString {
                             if (station.country.isNotBlank()) append(station.country)
                             if (station.country.isNotBlank() && station.language.isNotBlank()) append(" • ")
                             if (station.language.isNotBlank()) append(station.language)
@@ -203,65 +204,72 @@ fun PlayerSheetContent(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = 24.dp)
+                    .statusBarsPadding()
                     .windowInsetsPadding(WindowInsets.navigationBars)
                     .alpha((progress - 0.2f).coerceIn(0f, 0.8f) * 1.25f),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                IconButton(
-                    onClick = onCollapse,
-                    modifier = Modifier
-                        .align(Alignment.Start)
-                        .padding(top = 8.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.KeyboardArrowDown,
-                        contentDescription = "Collapse",
-                        modifier = Modifier.size(32.dp)
-                    )
-                }
-
-                // Placeholder for the moving thumbnail
-                Spacer(modifier = Modifier.height(expandedY + expandedSize - 20.dp))
-
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = station.name,
-                            style = MaterialTheme.typography.headlineMedium,
-                            textAlign = TextAlign.Center,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                            fontWeight = FontWeight.Bold
-                        )
-
-                        Text(
-                            text = buildString {
-                                if (station.country.isNotBlank()) append(station.country)
-                                if (station.country.isNotBlank() && station.language.isNotBlank()) append(" • ")
-                                if (station.language.isNotBlank()) append(station.language)
-                            },
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center
+                    IconButton(onClick = onCollapse) {
+                        Icon(
+                            imageVector = Icons.Default.KeyboardArrowDown,
+                            contentDescription = "Collapse",
+                            modifier = Modifier.size(32.dp)
                         )
                     }
 
-                    IconButton(
-                        onClick = onToggleFavorite,
-                        modifier = Modifier.size(48.dp)
-                    ) {
+                    IconButton(onClick = onToggleFavorite) {
                         Icon(
                             imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                             contentDescription = "Toggle Favorite",
                             modifier = Modifier.size(32.dp),
                             tint = if (isFavorite) Color.Red else LocalContentColor.current
+                        )
+                    }
+                }
+
+                // Placeholder for the moving thumbnail
+                Spacer(modifier = Modifier.height(100.dp + expandedSize - 20.dp))
+
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = station.name,
+                        style = MaterialTheme.typography.headlineMedium,
+                        textAlign = TextAlign.Center,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    Text(
+                        text = buildString {
+                            if (station.country.isNotBlank()) append(station.country)
+                            if (station.country.isNotBlank() && station.language.isNotBlank()) append(" • ")
+                            if (station.language.isNotBlank()) append(station.language)
+                        },
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+
+                    if (playbackState.currentTrack != null) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = playbackState.currentTrack,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            textAlign = TextAlign.Center,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }

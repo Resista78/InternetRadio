@@ -40,6 +40,7 @@ class SettingsRepository @Inject constructor(
         val USE_FILTER_ON_FAVORITES = booleanPreferencesKey("use_filter_on_favorites")
         val USE_FILTER_ON_ADDED = booleanPreferencesKey("use_filter_on_added")
         val RESUME_STATION = stringPreferencesKey("resume_station")
+        val IS_GRID_VIEW = booleanPreferencesKey("is_grid_view")
     }
 
     val appPreferencesFlow: Flow<AppPreferences> = context.dataStore.data
@@ -66,6 +67,7 @@ class SettingsRepository @Inject constructor(
             val useFilterOnFavorites = preferences[PreferencesKeys.USE_FILTER_ON_FAVORITES] ?: false
             val useFilterOnAdded = preferences[PreferencesKeys.USE_FILTER_ON_ADDED] ?: false
             val resumeStation = preferences[PreferencesKeys.RESUME_STATION]
+            val isGridView = preferences[PreferencesKeys.IS_GRID_VIEW] ?: true
             
             AppPreferences(
                 themeMode = themeMode, 
@@ -80,7 +82,8 @@ class SettingsRepository @Inject constructor(
                 useFilterOnRecent = useFilterOnRecent,
                 useFilterOnFavorites = useFilterOnFavorites,
                 useFilterOnAdded = useFilterOnAdded,
-                resumeStation = resumeStation
+                resumeStation = resumeStation,
+                isGridView = isGridView
             )
         }
 
@@ -165,6 +168,12 @@ class SettingsRepository @Inject constructor(
     suspend fun setSortReverse(reverse: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.SORT_REVERSE] = reverse
+        }
+    }
+
+    suspend fun setGridView(isGrid: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.IS_GRID_VIEW] = isGrid
         }
     }
 }

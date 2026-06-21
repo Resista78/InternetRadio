@@ -20,6 +20,10 @@ class RecentViewModel @Inject constructor(
         .map { it.useFilterOnRecent }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
+    val isGridView: StateFlow<Boolean> = settingsRepository.appPreferencesFlow
+        .map { it.isGridView }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
     val recentStations: StateFlow<List<RadioStation>> = combine(
         recentRepository.getAllRecent(),
         settingsRepository.appPreferencesFlow
@@ -48,5 +52,9 @@ class RecentViewModel @Inject constructor(
         viewModelScope.launch {
             settingsRepository.setUseFilterOnRecent(!useFilter.value)
         }
+    }
+
+    fun onGridViewChange(isGrid: Boolean) {
+        viewModelScope.launch { settingsRepository.setGridView(isGrid) }
     }
 }

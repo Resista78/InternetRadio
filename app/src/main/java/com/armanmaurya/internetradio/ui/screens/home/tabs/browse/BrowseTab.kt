@@ -42,6 +42,10 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.armanmaurya.internetradio.data.model.RadioStation
 import com.armanmaurya.internetradio.ui.screens.home.components.StationCard
+import com.armanmaurya.internetradio.ui.screens.home.components.StationListCard
+import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material.icons.filled.ViewList
+import androidx.compose.material3.IconButton
 
 @Composable
 fun BrowseContent(
@@ -71,7 +75,7 @@ fun BrowseContent(
 
     LazyVerticalGrid(
         state = gridState,
-        columns = GridCells.Fixed(3),
+        columns = if (uiState.isGridView) GridCells.Fixed(3) else GridCells.Fixed(1),
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(
             start = 16.dp,
@@ -87,6 +91,8 @@ fun BrowseContent(
                 reverse = uiState.reverse,
                 onOrderChange = viewModel::onOrderChange,
                 onReverseChange = viewModel::onReverseChange,
+                isGridView = uiState.isGridView,
+                onGridViewChange = viewModel::onGridViewChange,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 8.dp)
@@ -138,13 +144,23 @@ fun BrowseContent(
                     items = uiState.stations,
                     key = { it.stationUuid },
                 ) { station ->
-                    StationCard(
-                        station = station,
-                        onClick = { onStationClick(station) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .animateItem(),
-                    )
+                    if (uiState.isGridView) {
+                        StationCard(
+                            station = station,
+                            onClick = { onStationClick(station) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .animateItem(),
+                        )
+                    } else {
+                        StationListCard(
+                            station = station,
+                            onClick = { onStationClick(station) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .animateItem(),
+                        )
+                    }
                 }
 
                 if (uiState.isNextPageLoading) {
@@ -171,6 +187,8 @@ private fun SearchFilters(
     reverse: Boolean,
     onOrderChange: (String) -> Unit,
     onReverseChange: (Boolean) -> Unit,
+    isGridView: Boolean,
+    onGridViewChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val orderOptions = listOf(
@@ -184,8 +202,15 @@ private fun SearchFilters(
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.End
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
+        IconButton(onClick = { onGridViewChange(!isGridView) }) {
+            Icon(
+                imageVector = if (isGridView) Icons.Default.ViewList else Icons.Default.GridView,
+                contentDescription = "Toggle View"
+            )
+        }
+
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box {
                 FilterChip(

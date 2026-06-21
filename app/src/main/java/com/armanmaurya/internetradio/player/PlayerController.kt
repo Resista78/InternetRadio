@@ -81,7 +81,26 @@ class PlayerController @Inject constructor(
             val tagStation = mediaItem.localConfiguration?.tag as? RadioStation
             if (tagStation != null) {
                 activeStation = tagStation
-                _playbackState.update { it.copy(currentStation = activeStation) }
+                _playbackState.update { it.copy(currentStation = activeStation, currentTrack = null) }
+            }
+        }
+
+        override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
+            val title = mediaMetadata.title?.toString() ?: mediaMetadata.displayTitle?.toString()
+            if (title != null && title != activeStation?.name) {
+                _playbackState.update { it.copy(currentTrack = title) }
+            }
+        }
+
+        override fun onMetadata(metadata: androidx.media3.common.Metadata) {
+            for (i in 0 until metadata.length()) {
+                val entry = metadata.get(i)
+                if (entry is androidx.media3.extractor.metadata.icy.IcyInfo) {
+                    val title = entry.title
+                    if (!title.isNullOrBlank() && title != activeStation?.name) {
+                        _playbackState.update { it.copy(currentTrack = title) }
+                    }
+                }
             }
         }
     }
@@ -134,7 +153,6 @@ class PlayerController @Inject constructor(
                                         .setUri(station.urlResolved)
                                         .setMediaMetadata(
                                             MediaMetadata.Builder()
-                                                .setTitle(station.name)
                                                 .setArtworkUri(android.net.Uri.parse(station.favicon))
                                                 .build()
                                         )
@@ -170,7 +188,6 @@ class PlayerController @Inject constructor(
             .setUri(station.urlResolved)
             .setMediaMetadata(
                 MediaMetadata.Builder()
-                    .setTitle(station.name)
                     .setArtworkUri(android.net.Uri.parse(station.favicon))
                     .build()
             )
@@ -228,6 +245,7 @@ class PlayerController @Inject constructor(
 
 data class PlaybackState(
     val currentStation: RadioStation? = null,
+    val currentTrack: String? = null,
     val isPlaying: Boolean = false,
     val isLoading: Boolean = false,
     val isError: Boolean = false,
