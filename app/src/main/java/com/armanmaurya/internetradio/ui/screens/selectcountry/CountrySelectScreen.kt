@@ -22,6 +22,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.ui.res.stringResource
+import com.armanmaurya.internetradio.R
 import com.armanmaurya.internetradio.data.model.Country
 import kotlinx.coroutines.delay
 
@@ -92,7 +94,7 @@ fun CountrySelectScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .focusRequester(focusRequester),
-                                placeholder = { Text("Search countries...") },
+                                placeholder = { Text(stringResource(R.string.search_countries)) },
                                 singleLine = true,
                                 colors = TextFieldDefaults.colors(
                                     focusedContainerColor = Color.Transparent,
@@ -103,7 +105,7 @@ fun CountrySelectScreen(
                                 )
                             )
                         } else {
-                            Text("Select Country")
+                            Text(stringResource(R.string.select_country))
                         }
                     }
                 },

@@ -22,6 +22,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.ui.res.stringResource
+import com.armanmaurya.internetradio.R
 import com.armanmaurya.internetradio.data.model.Language
 import kotlinx.coroutines.delay
 
@@ -90,7 +92,7 @@ fun LanguageSelectScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .focusRequester(focusRequester),
-                                placeholder = { Text("Search languages...") },
+                                placeholder = { Text(stringResource(R.string.search_languages)) },
                                 singleLine = true,
                                 colors = TextFieldDefaults.colors(
                                     focusedContainerColor = Color.Transparent,
@@ -101,7 +103,7 @@ fun LanguageSelectScreen(
                                 )
                             )
                         } else {
-                            Text("Select Language")
+                            Text(stringResource(R.string.select_language))
                         }
                     }
                 },

@@ -23,6 +23,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
+import com.armanmaurya.internetradio.R
 import androidx.compose.ui.unit.dp
 import androidx.activity.compose.BackHandler
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -63,8 +65,8 @@ fun TagSelectScreen(
     if (showUnsavedWarning) {
         AlertDialog(
             onDismissRequest = { showUnsavedWarning = false },
-            title = { Text("Discard changes?") },
-            text = { Text("You have unsaved tag selections. Are you sure you want to go back and discard them?") },
+            title = { Text(stringResource(R.string.discard_changes)) },
+            text = { Text(stringResource(R.string.discard_changes_message)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -72,14 +74,14 @@ fun TagSelectScreen(
                         onBackClick()
                     }
                 ) {
-                    Text("Discard")
+                    Text(stringResource(R.string.discard))
                 }
             },
             dismissButton = {
                 TextButton(
                     onClick = { showUnsavedWarning = false }
                 ) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.dialog_add_station_cancel))
                 }
             }
         )
@@ -130,7 +132,7 @@ fun TagSelectScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .focusRequester(focusRequester),
-                                placeholder = { Text("Search tags...") },
+                                placeholder = { Text(stringResource(R.string.search_tags)) },
                                 singleLine = true,
                                 colors = TextFieldDefaults.colors(
                                     focusedContainerColor = Color.Transparent,
@@ -141,7 +143,7 @@ fun TagSelectScreen(
                                 )
                             )
                         } else {
-                            Text("Select Tags")
+                            Text(stringResource(R.string.select_tags))
                         }
                     }
                 },

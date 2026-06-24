@@ -22,6 +22,8 @@ import com.armanmaurya.internetradio.ui.screens.home.components.StationCard
 import com.armanmaurya.internetradio.ui.screens.home.components.StationListCard
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.ViewList
+import androidx.compose.ui.res.stringResource
+import com.armanmaurya.internetradio.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,7 +59,7 @@ fun RecentContent(
                 IconButton(onClick = { viewModel.onGridViewChange(!isGridView) }) {
                     Icon(
                         imageVector = if (isGridView) Icons.Default.ViewList else Icons.Default.GridView,
-                        contentDescription = "Toggle View"
+                        contentDescription = stringResource(R.string.toggle_view)
                     )
                 }
 
@@ -66,7 +68,7 @@ fun RecentContent(
                     onClick = { viewModel.toggleFilter() },
                     label = { 
                         Text(
-                            text = if (useFilter) "Filters Active" else "Use Filters",
+                            text = if (useFilter) stringResource(R.string.filters_active) else stringResource(R.string.use_filters),
                             style = MaterialTheme.typography.labelMedium
                         ) 
                     },
@@ -81,7 +83,7 @@ fun RecentContent(
                         {
                             Icon(
                                 imageVector = Icons.Default.Close,
-                                contentDescription = "Clear",
+                                contentDescription = stringResource(R.string.clear),
                                 modifier = Modifier.size(18.dp)
                             )
                         }
@@ -106,7 +108,7 @@ fun RecentContent(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = if (useFilter) "No recently played stations matching your filters." else "No recently played stations",
+                        text = if (useFilter) stringResource(R.string.no_recent_stations_filtered) else stringResource(R.string.no_recent_stations),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

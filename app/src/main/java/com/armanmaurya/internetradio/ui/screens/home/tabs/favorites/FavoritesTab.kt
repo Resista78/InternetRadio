@@ -23,6 +23,8 @@ import com.armanmaurya.internetradio.ui.screens.home.components.StationCard
 import com.armanmaurya.internetradio.ui.screens.home.components.StationListCard
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.ViewList
+import androidx.compose.ui.res.stringResource
+import com.armanmaurya.internetradio.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -58,7 +60,7 @@ fun FavoritesContent(
                 IconButton(onClick = { viewModel.onGridViewChange(!isGridView) }) {
                     Icon(
                         imageVector = if (isGridView) Icons.Default.ViewList else Icons.Default.GridView,
-                        contentDescription = "Toggle View"
+                        contentDescription = stringResource(R.string.toggle_view)
                     )
                 }
 
@@ -67,7 +69,7 @@ fun FavoritesContent(
                     onClick = { viewModel.toggleFilter() },
                     label = { 
                         Text(
-                            text = if (useFilter) "Filters Active" else "Use Filters",
+                            text = if (useFilter) stringResource(R.string.filters_active) else stringResource(R.string.use_filters),
                             style = MaterialTheme.typography.labelMedium
                         ) 
                     },
@@ -82,7 +84,7 @@ fun FavoritesContent(
                         {
                             Icon(
                                 imageVector = Icons.Default.Close,
-                                contentDescription = "Clear",
+                                contentDescription = stringResource(R.string.clear),
                                 modifier = Modifier.size(18.dp)
                             )
                         }
@@ -108,9 +110,9 @@ fun FavoritesContent(
                 ) {
                     Text(
                         text = if (useFilter) 
-                            "No favorite stations matching your filters." 
+                            stringResource(R.string.no_favorite_stations_filtered) 
                         else 
-                            "No favorite stations yet.\nHeart your favorite stations to see them here!",
+                            stringResource(R.string.no_favorite_stations_yet),
                         style = MaterialTheme.typography.bodyLarge,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.padding(32.dp),

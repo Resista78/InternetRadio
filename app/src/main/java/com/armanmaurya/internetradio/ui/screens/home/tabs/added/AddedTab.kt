@@ -59,7 +59,7 @@ fun AddedContent(
                 IconButton(onClick = { viewModel.onGridViewChange(!isGridView) }) {
                     Icon(
                         imageVector = if (isGridView) Icons.Default.ViewList else Icons.Default.GridView,
-                        contentDescription = "Toggle View"
+                        contentDescription = stringResource(R.string.toggle_view)
                     )
                 }
 
@@ -68,7 +68,7 @@ fun AddedContent(
                     onClick = { viewModel.toggleFilter() },
                     label = { 
                         Text(
-                            text = if (useFilter) "Filters Active" else "Use Filters",
+                            text = if (useFilter) stringResource(R.string.filters_active) else stringResource(R.string.use_filters),
                             style = MaterialTheme.typography.labelMedium
                         ) 
                     },
@@ -83,7 +83,7 @@ fun AddedContent(
                         {
                             Icon(
                                 imageVector = Icons.Default.Close,
-                                contentDescription = "Clear",
+                                contentDescription = stringResource(R.string.clear),
                                 modifier = Modifier.size(18.dp)
                             )
                         }
@@ -109,7 +109,7 @@ fun AddedContent(
                 ) {
                     Text(
                         text = if (useFilter) 
-                            "No added stations matching your filters." 
+                            stringResource(R.string.no_added_stations_filtered) 
                         else 
                             stringResource(R.string.no_added_stations),
                         style = MaterialTheme.typography.bodyLarge,

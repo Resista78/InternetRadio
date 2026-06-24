@@ -37,4 +37,30 @@
     <string name="dialog_add_station_thumbnail_label">Thumbnail URL (Optional)</string>
     <string name="dialog_add_station_add">Add</string>
     <string name="dialog_add_station_cancel">Cancel</string>
+
+    <string name="filters_active">Filters Active</string>
+    <string name="use_filters">Use Filters</string>
+    <string name="search">Search</string>
+    <string name="search_countries">Search countries...</string>
+    <string name="select_country">Select Country</string>
+    <string name="search_languages">Search languages...</string>
+    <string name="select_language">Select Language</string>
+    <string name="search_tags">Search tags...</string>
+    <string name="select_tags">Select Tags</string>
+    <string name="no_favorite_stations_filtered">No favorite stations matching your filters.</string>
+    <string name="no_favorite_stations_yet">No favorite stations yet.\nHeart your favorite stations to see them here!</string>
+    <string name="votes">Votes</string>
+    <string name="clicks">Clicks</string>
+    <string name="trend">Trend</string>
+    <string name="name">Name</string>
+    <string name="toggle_view">Toggle View</string>
+    <string name="descending">Descending</string>
+    <string name="ascending">Ascending</string>
+    <string name="clear">Clear</string>
+    <string name="discard_changes">Discard changes?</string>
+    <string name="discard_changes_message">You have unsaved tag selections. Are you sure you want to go back and discard them?</string>
+    <string name="discard">Discard</string>
+    <string name="no_recent_stations_filtered">No recently played stations matching your filters.</string>
+    <string name="no_recent_stations">No recently played stations</string>
+    <string name="no_added_stations_filtered">No added stations matching your filters.</string>
 </resources>

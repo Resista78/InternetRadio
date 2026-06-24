@@ -40,6 +40,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.ui.res.stringResource
+import com.armanmaurya.internetradio.R
 import com.armanmaurya.internetradio.data.model.RadioStation
 import com.armanmaurya.internetradio.ui.screens.home.components.StationCard
 import com.armanmaurya.internetradio.ui.screens.home.components.StationListCard
@@ -192,10 +194,10 @@ private fun SearchFilters(
     modifier: Modifier = Modifier
 ) {
     val orderOptions = listOf(
-        "votes" to "Votes",
-        "clickcount" to "Clicks",
-        "clicktrend" to "Trend",
-        "name" to "Name"
+        "votes" to stringResource(R.string.votes),
+        "clickcount" to stringResource(R.string.clicks),
+        "clicktrend" to stringResource(R.string.trend),
+        "name" to stringResource(R.string.name)
     )
     var orderExpanded by remember { mutableStateOf(false) }
 
@@ -207,7 +209,7 @@ private fun SearchFilters(
         IconButton(onClick = { onGridViewChange(!isGridView) }) {
             Icon(
                 imageVector = if (isGridView) Icons.Default.ViewList else Icons.Default.GridView,
-                contentDescription = "Toggle View"
+                contentDescription = stringResource(R.string.toggle_view)
             )
         }
 
@@ -225,7 +227,7 @@ private fun SearchFilters(
                             Spacer(modifier = Modifier.width(4.dp))
                             Icon(
                                 imageVector = if (reverse) Icons.Default.ArrowDownward else Icons.Default.ArrowUpward,
-                                contentDescription = if (reverse) "Descending" else "Ascending",
+                                contentDescription = if (reverse) stringResource(R.string.descending) else stringResource(R.string.ascending),
                                 modifier = Modifier.size(14.dp)
                             )
                         }

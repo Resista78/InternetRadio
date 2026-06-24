@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">इंटरनेट रेडियो</string>
+    <string name="settings_title">सेटिंग्स</string>
+    <string name="settings_appearance_section">दिखावट</string>
+    <string name="settings_dynamic_theme_title">डायनेमिक रंग</string>
+    <string name="settings_dynamic_theme_subtitle">वॉलपेपर-आधारित रंगों का उपयोग करें (Android 12+)</string>
+    <string name="settings_theme_title">थीम</string>
+    <string name="settings_theme_light">हल्का</string>
+    <string name="settings_theme_dark">गहरा</string>
+    <string name="settings_theme_system">सिस्टम डिफ़ॉल्ट</string>
+    <string name="settings_pure_black_title">शुद्ध काला</string>
+    <string name="settings_pure_black_subtitle">डार्क मोड में शुद्ध काले रंग की पृष्ठभूमि का उपयोग करें</string>
+    <string name="settings_general_section">सामान्य</string>
+    <string name="settings_language_title">भाषा</string>
+    <string name="settings_about_section">हमारे बारे में</string>
+    <string name="settings_rate_review">रेट करें और समीक्षा करें</string>
+    <string name="settings_about_us">हमारे बारे में</string>
+
+    <!-- About Screen -->
+    <string name="about_title">के बारे में</string>
+    <string name="about_app_description">एक सरल इंटरनेट रेडियो प्लेयर जो आपको दुनिया भर के हजारों रेडियो स्टेशनों को खोजने और सुनने की सुविधा देता है।</string>
+    <string name="about_view_contributors">योगदानकर्ता देखें</string>
+    <string name="about_view_github">GitHub पर देखें</string>
+
+    <!-- Discover Screen -->
+    <string name="tab_browse">ब्राउज़ करें</string>
+    <string name="tab_recent">हाल ही के</string>
+    <string name="tab_favourites">पसंदीदा</string>
+    <string name="tab_added">जोड़े गए</string>
+
+    <!-- Added Tab -->
+    <string name="add_station">स्टेशन जोड़ें</string>
+    <string name="no_added_stations">कोई कस्टम स्टेशन नहीं जोड़ा गया</string>
+    <string name="dialog_add_station_title">कस्टम स्टेशन जोड़ें</string>
+    <string name="dialog_add_station_name_label">स्टेशन का नाम</string>
+    <string name="dialog_add_station_url_label">स्ट्रीम URL</string>
+    <string name="dialog_add_station_thumbnail_label">थंबनेल URL (वैकल्पिक)</string>
+    <string name="dialog_add_station_add">जोड़ें</string>
+    <string name="dialog_add_station_cancel">रद्द करें</string>
+
+    <string name="filters_active">फ़िल्टर सक्रिय हैं</string>
+    <string name="use_filters">फ़िल्टर उपयोग करें</string>
+    <string name="search">खोजें</string>
+    <string name="search_countries">देश खोजें...</string>
+    <string name="select_country">देश चुनें</string>
+    <string name="search_languages">भाषाएं खोजें...</string>
+    <string name="select_language">भाषा चुनें</string>
+    <string name="search_tags">टैग खोजें...</string>
+    <string name="select_tags">टैग चुनें</string>
+    <string name="no_favorite_stations_filtered">आपके फ़िल्टर से मेल खाने वाले कोई पसंदीदा स्टेशन नहीं हैं।</string>
+    <string name="no_favorite_stations_yet">अभी तक कोई पसंदीदा स्टेशन नहीं है।\nउन्हें यहां देखने के लिए अपने पसंदीदा स्टेशनों को दिल दें!</string>
+    <string name="votes">वोट</string>
+    <string name="clicks">क्लिक</string>
+    <string name="trend">रुझान</string>
+    <string name="name">नाम</string>
+    <string name="toggle_view">दृश्य बदलें</string>
+    <string name="descending">अवरोही</string>
+    <string name="ascending">आरोही</string>
+    <string name="clear">साफ़ करें</string>
+    <string name="discard_changes">परिवर्तन छोड़ें?</string>
+    <string name="discard_changes_message">आपके पास सहेजे न गए टैग चयन हैं। क्या आप निश्चित रूप से वापस जाना और उन्हें छोड़ना चाहते हैं?</string>
+    <string name="discard">छोड़ें</string>
+    <string name="no_recent_stations_filtered">आपके फ़िल्टर से मेल खाने वाले कोई हाल ही में चलाए गए स्टेशन नहीं हैं।</string>
+    <string name="no_recent_stations">कोई हाल ही में चलाए गए स्टेशन नहीं</string>
+    <string name="no_added_stations_filtered">आपके फ़िल्टर से मेल खाने वाले कोई जोड़े गए स्टेशन नहीं हैं।</string>
+</resources>

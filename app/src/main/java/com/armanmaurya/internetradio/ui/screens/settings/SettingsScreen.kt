@@ -164,10 +164,17 @@ private fun GeneralSection(
     onToggleLanguageExpanded: () -> Unit,
     onSetLanguage: (String) -> Unit
 ) {
+    val currentLocales = androidx.appcompat.app.AppCompatDelegate.getApplicationLocales()
+    val activeLanguageCode = if (currentLocales.isEmpty) {
+        "System"
+    } else {
+        currentLocales[0]?.language ?: "System"
+    }
+
     Section(title = stringResource(R.string.settings_general_section)) {
         ExpandableItem(
             title = stringResource(R.string.settings_language_title),
-            subtitle = uiState.appLanguage.getLanguageDisplayName(),
+            subtitle = activeLanguageCode.getLanguageDisplayName(),
             isExpanded = languageExpanded,
             onToggle = onToggleLanguageExpanded,
             icon = Icons.Default.Translate
@@ -175,7 +182,7 @@ private fun GeneralSection(
             languages.forEach { (code, name) ->
                 OptionItem(
                     label = name,
-                    isSelected = uiState.appLanguage == code,
+                    isSelected = activeLanguageCode == code,
                     onClick = { onSetLanguage(code) }
                 )
             }

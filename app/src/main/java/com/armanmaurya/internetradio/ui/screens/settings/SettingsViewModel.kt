@@ -45,6 +45,12 @@ class SettingsViewModel @Inject constructor(
     fun setAppLanguage(language: String) {
         viewModelScope.launch {
             settingsRepository.setAppLanguage(language)
+            val localeList = if (language == "System") {
+                androidx.core.os.LocaleListCompat.getEmptyLocaleList()
+            } else {
+                androidx.core.os.LocaleListCompat.forLanguageTags(language)
+            }
+            androidx.appcompat.app.AppCompatDelegate.setApplicationLocales(localeList)
         }
     }
 }
