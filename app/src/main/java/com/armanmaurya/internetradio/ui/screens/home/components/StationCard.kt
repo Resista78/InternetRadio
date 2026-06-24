@@ -34,12 +34,15 @@ fun StationCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     onDeleteClick: (() -> Unit)? = null,
+    isCurrentlyPlaying: Boolean = false,
+    isPlaybackActive: Boolean = false,
 ) {
     Card(
         modifier = modifier
             .aspectRatio(1f)
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(12.dp),
+        border = if (isCurrentlyPlaying) androidx.compose.foundation.BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             AsyncImage(
@@ -67,6 +70,17 @@ fun StationCard(
                         )
                     )
             )
+
+            if (isCurrentlyPlaying) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.4f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    PlayingVisualizer(isPlaybackActive = isPlaybackActive)
+                }
+            }
 
             if (onDeleteClick != null) {
                 IconButton(

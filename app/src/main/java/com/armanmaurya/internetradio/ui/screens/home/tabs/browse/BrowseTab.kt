@@ -55,6 +55,8 @@ fun BrowseContent(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp),
     viewModel: BrowseViewModel = hiltViewModel(),
+    playingStationUuid: String? = null,
+    isPlaybackActive: Boolean = false
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     
@@ -153,6 +155,8 @@ fun BrowseContent(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .animateItem(),
+                            isCurrentlyPlaying = playingStationUuid == station.stationUuid,
+                            isPlaybackActive = isPlaybackActive
                         )
                     } else {
                         StationListCard(
@@ -161,6 +165,8 @@ fun BrowseContent(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .animateItem(),
+                            isCurrentlyPlaying = playingStationUuid == station.stationUuid,
+                            isPlaybackActive = isPlaybackActive
                         )
                     }
                 }

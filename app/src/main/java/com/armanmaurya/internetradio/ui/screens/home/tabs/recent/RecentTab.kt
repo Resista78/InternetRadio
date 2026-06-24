@@ -31,7 +31,9 @@ fun RecentContent(
     onStationClick: (RadioStation) -> Unit,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp),
-    viewModel: RecentViewModel = hiltViewModel()
+    viewModel: RecentViewModel = hiltViewModel(),
+    playingStationUuid: String? = null,
+    isPlaybackActive: Boolean = false
 ) {
     val recentStations by viewModel.recentStations.collectAsStateWithLifecycle()
     val useFilter by viewModel.useFilter.collectAsStateWithLifecycle()
@@ -125,7 +127,9 @@ fun RecentContent(
                         onClick = { onStationClick(station) },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .animateItem()
+                            .animateItem(),
+                        isCurrentlyPlaying = playingStationUuid == station.stationUuid,
+                        isPlaybackActive = isPlaybackActive
                     )
                 } else {
                     StationListCard(
@@ -133,7 +137,9 @@ fun RecentContent(
                         onClick = { onStationClick(station) },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .animateItem()
+                            .animateItem(),
+                        isCurrentlyPlaying = playingStationUuid == station.stationUuid,
+                        isPlaybackActive = isPlaybackActive
                     )
                 }
             }

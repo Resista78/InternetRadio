@@ -82,6 +82,9 @@ fun HomeScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val browseUiState by browseViewModel.uiState.collectAsStateWithLifecycle()
+    val playbackState by playerViewModel.playbackState.collectAsStateWithLifecycle()
+    val playingStationUuid = playbackState.currentStation?.stationUuid
+    val isPlaybackActive = playbackState.isPlaying
 
     val tabs = listOf(
         stringResource(R.string.tab_browse),
@@ -283,20 +286,28 @@ fun HomeScreen(
                         0 -> BrowseContent(
                             onStationClick = { playerViewModel.play(it) },
                             contentPadding = contentPadding,
-                            viewModel = browseViewModel
+                            viewModel = browseViewModel,
+                            playingStationUuid = playingStationUuid,
+                            isPlaybackActive = isPlaybackActive
                         )
                         1 -> RecentContent(
                             onStationClick = { playerViewModel.play(it) },
-                            contentPadding = contentPadding
+                            contentPadding = contentPadding,
+                            playingStationUuid = playingStationUuid,
+                            isPlaybackActive = isPlaybackActive
                         )
                         2 -> FavoritesContent(
                             onStationClick = { playerViewModel.play(it) },
-                            contentPadding = contentPadding
+                            contentPadding = contentPadding,
+                            playingStationUuid = playingStationUuid,
+                            isPlaybackActive = isPlaybackActive
                         )
                         3 -> AddedContent(
                             onStationClick = { playerViewModel.play(it) },
                             contentPadding = contentPadding,
-                            viewModel = addedViewModel
+                            viewModel = addedViewModel,
+                            playingStationUuid = playingStationUuid,
+                            isPlaybackActive = isPlaybackActive
                         )
                     }
                 }

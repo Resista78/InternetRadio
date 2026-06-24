@@ -32,7 +32,9 @@ fun FavoritesContent(
     onStationClick: (RadioStation) -> Unit,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp),
-    viewModel: FavoritesViewModel = hiltViewModel()
+    viewModel: FavoritesViewModel = hiltViewModel(),
+    playingStationUuid: String? = null,
+    isPlaybackActive: Boolean = false
 ) {
     val favorites by viewModel.favorites.collectAsStateWithLifecycle()
     val useFilter by viewModel.useFilter.collectAsStateWithLifecycle()
@@ -132,6 +134,8 @@ fun FavoritesContent(
                         modifier = Modifier
                             .fillMaxWidth()
                             .animateItem(),
+                        isCurrentlyPlaying = playingStationUuid == station.stationUuid,
+                        isPlaybackActive = isPlaybackActive
                     )
                 } else {
                     StationListCard(
@@ -140,6 +144,8 @@ fun FavoritesContent(
                         modifier = Modifier
                             .fillMaxWidth()
                             .animateItem(),
+                        isCurrentlyPlaying = playingStationUuid == station.stationUuid,
+                        isPlaybackActive = isPlaybackActive
                     )
                 }
             }

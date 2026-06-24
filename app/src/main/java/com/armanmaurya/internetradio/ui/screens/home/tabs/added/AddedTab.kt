@@ -31,7 +31,9 @@ fun AddedContent(
     onStationClick: (RadioStation) -> Unit,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp),
-    viewModel: AddedViewModel = hiltViewModel()
+    viewModel: AddedViewModel = hiltViewModel(),
+    playingStationUuid: String? = null,
+    isPlaybackActive: Boolean = false
 ) {
     val userStations by viewModel.userStations.collectAsStateWithLifecycle()
     val useFilter by viewModel.useFilter.collectAsStateWithLifecycle()
@@ -129,7 +131,9 @@ fun AddedContent(
                         onDeleteClick = { viewModel.deleteStation(station.stationUuid) },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .animateItem()
+                            .animateItem(),
+                        isCurrentlyPlaying = playingStationUuid == station.stationUuid,
+                        isPlaybackActive = isPlaybackActive
                     )
                 } else {
                     StationListCard(
@@ -138,7 +142,9 @@ fun AddedContent(
                         onDeleteClick = { viewModel.deleteStation(station.stationUuid) },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .animateItem()
+                            .animateItem(),
+                        isCurrentlyPlaying = playingStationUuid == station.stationUuid,
+                        isPlaybackActive = isPlaybackActive
                     )
                 }
             }

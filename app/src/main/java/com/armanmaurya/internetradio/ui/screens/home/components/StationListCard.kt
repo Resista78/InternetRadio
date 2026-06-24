@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.border
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Card
@@ -31,6 +32,8 @@ fun StationListCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     onDeleteClick: (() -> Unit)? = null,
+    isCurrentlyPlaying: Boolean = false,
+    isPlaybackActive: Boolean = false,
 ) {
     Card(
         modifier = modifier
@@ -45,17 +48,37 @@ fun StationListCard(
                 .padding(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            AsyncImage(
-                model = station.favicon.ifBlank { null },
-                contentDescription = "${station.name} logo",
-                contentScale = ContentScale.Crop,
+            Box(
                 modifier = Modifier
                     .size(56.dp)
                     .clip(RoundedCornerShape(8.dp))
-                    .background(Color(0xFF1E1E1E)),
-                error = painterResource(id = R.drawable.ic_launcher_foreground),
-                fallback = painterResource(id = R.drawable.ic_launcher_foreground)
-            )
+                    .then(
+                        if (isCurrentlyPlaying) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(8.dp))
+                        else Modifier
+                    )
+            ) {
+                AsyncImage(
+                    model = station.favicon.ifBlank { null },
+                    contentDescription = "${station.name} logo",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color(0xFF1E1E1E)),
+                    error = painterResource(id = R.drawable.ic_launcher_foreground),
+                    fallback = painterResource(id = R.drawable.ic_launcher_foreground)
+                )
+
+                if (isCurrentlyPlaying) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.4f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        PlayingVisualizer(isPlaybackActive = isPlaybackActive)
+                    }
+                }
+            }
             
             Spacer(modifier = Modifier.width(16.dp))
 
@@ -66,6 +89,7 @@ fun StationListCard(
                 Text(
                     text = station.name,
                     style = MaterialTheme.typography.titleMedium,
+                    color = if (isCurrentlyPlaying) MaterialTheme.colorScheme.primary else Color.Unspecified,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
