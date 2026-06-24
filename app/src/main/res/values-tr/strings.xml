@@ -1,0 +1,62 @@
+<resources>
+    <string name="app_name">İnternet Radyosu</string>
+    <string name="settings_title">Ayarlar</string>
+    <string name="settings_appearance_section">Görünüm</string>
+    <string name="settings_dynamic_theme_title">Dinamik Renk</string>
+    <string name="settings_dynamic_theme_subtitle">Duvar kâğıdı tabanlı renkleri kullan (Android 12+)</string>
+    <string name="settings_theme_title">Tema</string>
+    <string name="settings_theme_light">Açık</string>
+    <string name="settings_theme_dark">Koyu</string>
+    <string name="settings_theme_system">Sistem Varsayılanı</string>
+    <string name="settings_pure_black_title">Saf Siyah</string>
+    <string name="settings_pure_black_subtitle">Koyu modda saf siyah arka plan kullan</string>
+    <string name="settings_general_section">Genel</string>
+    <string name="settings_language_title">Dil</string>
+    <string name="settings_about_section">Hakkında</string>
+    <string name="settings_rate_review">Puan Ver &amp; Değerlendir</string>
+    <string name="settings_about_us">Hakkımızda</string>
+    <!-- About Screen -->
+    <string name="about_title">Hakkında</string>
+    <string name="about_app_description">Dünyanın dört bir yanından binlerce radyo istasyonunu keşfedip dinlemenizi sağlayan basit bir internet radyo uygulaması.</string>
+    <string name="about_view_contributors">Katkıda Bulunanları Gör</string>
+    <string name="about_view_github">GitHub\'da Görüntüle</string>
+    <!-- Discover Screen -->
+    <string name="tab_browse">Keşfet</string>
+    <string name="tab_recent">Son Dinlenenler</string>
+    <string name="tab_favourites">Favoriler</string>
+    <string name="tab_added">Eklenenler</string>
+    <!-- Added Tab -->
+    <string name="add_station">İstasyon Ekle</string>
+    <string name="no_added_stations">Eklenmiş özel istasyon yok</string>
+    <string name="dialog_add_station_title">Özel İstasyon Ekle</string>
+    <string name="dialog_add_station_name_label">İstasyon Adı</string>
+    <string name="dialog_add_station_url_label">Yayın URL\'si</string>
+    <string name="dialog_add_station_thumbnail_label">Küçük Resim URL\'si (İsteğe Bağlı)</string>
+    <string name="dialog_add_station_add">Ekle</string>
+    <string name="dialog_add_station_cancel">İptal</string>
+    <string name="filters_active">Filtreler Aktif</string>
+    <string name="use_filters">Filtre Kullan</string>
+    <string name="search">Ara</string>
+    <string name="search_countries">Ülke ara...</string>
+    <string name="select_country">Ülke Seç</string>
+    <string name="search_languages">Dil ara...</string>
+    <string name="select_language">Dil Seç</string>
+    <string name="search_tags">Etiket ara...</string>
+    <string name="select_tags">Etiket Seç</string>
+    <string name="no_favorite_stations_filtered">Filtrelerinizle eşleşen favori istasyon yok.</string>
+    <string name="no_favorite_stations_yet">Henüz favori istasyon yok.\nFavori istasyonlarınızı kalp simgesiyle işaretleyin!</string>
+    <string name="votes">Oylar</string>
+    <string name="clicks">Tıklamalar</string>
+    <string name="trend">Trend</string>
+    <string name="name">Ad</string>
+    <string name="toggle_view">Görünümü Değiştir</string>
+    <string name="descending">Azalan</string>
+    <string name="ascending">Artan</string>
+    <string name="clear">Temizle</string>
+    <string name="discard_changes">Değişiklikler iptal edilsin mi?</string>
+    <string name="discard_changes_message">Kaydedilmemiş etiket seçimleriniz var. Geri dönüp bunları iptal etmek istediğinizden emin misiniz?</string>
+    <string name="discard">İptal Et</string>
+    <string name="no_recent_stations_filtered">Filtrelerinizle eşleşen son dinlenen istasyon yok.</string>
+    <string name="no_recent_stations">Son dinlenen istasyon yok</string>
+    <string name="no_added_stations_filtered">Filtrelerinizle eşleşen eklenmiş istasyon yok.</string>
+</resources>
