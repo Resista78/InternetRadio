@@ -2,6 +2,7 @@ package com.armanmaurya.internetradio.ui.screens.settings
 
 import android.content.Intent
 import android.net.Uri
+import org.xmlpull.v1.XmlPullParser
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -78,7 +79,7 @@ fun SettingsScreen(
             )
             GeneralSection(
                 uiState = uiState,
-                languages = availableLanguages,
+                languages = rememberAvailableLanguages(),
                 languageExpanded = languageExpanded,
                 onToggleLanguageExpanded = { languageExpanded = !languageExpanded },
                 onSetLanguage = viewModel::setAppLanguage
@@ -174,7 +175,7 @@ private fun GeneralSection(
     Section(title = stringResource(R.string.settings_general_section)) {
         ExpandableItem(
             title = stringResource(R.string.settings_language_title),
-            subtitle = activeLanguageCode.getLanguageDisplayName(),
+            subtitle = activeLanguageCode.getLanguageDisplayName(languages),
             isExpanded = languageExpanded,
             onToggle = onToggleLanguageExpanded,
             icon = Icons.Default.Translate
@@ -218,12 +219,33 @@ private fun AboutSection(onAboutClick: () -> Unit) {
     }
 }
 
-private val availableLanguages = listOf(
-    "System" to "System Default",
-    "en" to "English",
-    "hi" to "हिन्दी"
-)
+@Composable
+private fun rememberAvailableLanguages(): List<Pair<String, String>> {
+    val context = LocalContext.current
+    return remember {
+        buildList {
+            add("System" to "System Default")
+            try {
+                val parser = context.resources.getXml(R.xml.locales_config)
+                var event = parser.next()
+                while (event != XmlPullParser.END_DOCUMENT) {
+                    if (event == XmlPullParser.START_TAG && parser.name == "locale") {
+                        val tag = parser.getAttributeValue(
+                            "http://schemas.android.com/apk/res/android", "name"
+                        )
+                        if (!tag.isNullOrBlank()) {
+                            val locale = java.util.Locale.forLanguageTag(tag)
+                            add(tag to locale.getDisplayName(locale).replaceFirstChar { it.uppercaseChar() })
+                        }
+                    }
+                    event = parser.next()
+                }
+                parser.close()
+            } catch (_: Exception) { }
+        }
+    }
+}
 
-private fun String.getLanguageDisplayName(): String {
+private fun String.getLanguageDisplayName(availableLanguages: List<Pair<String, String>>): String {
     return availableLanguages.find { it.first == this }?.second ?: "System Default"
 }

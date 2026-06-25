@@ -148,6 +148,10 @@ class SettingsRepository @Inject constructor(
         }
     }
 
+    suspend fun getSavedAppLanguage(): String? {
+        return context.dataStore.data.first()[PreferencesKeys.APP_LANGUAGE]
+    }
+
     suspend fun setSelectedCountryCode(countryCode: String?) {
         context.dataStore.edit { preferences ->
             if (countryCode == null) {

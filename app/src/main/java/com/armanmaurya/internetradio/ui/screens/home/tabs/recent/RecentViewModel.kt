@@ -29,15 +29,24 @@ class RecentViewModel @Inject constructor(
         settingsRepository.appPreferencesFlow
     ) { stations, preferences ->
         if (preferences.useFilterOnRecent) {
-            stations.filter { station ->
-                val countryMatch = preferences.selectedCountryCode == null || 
-                                 station.countryCode == preferences.selectedCountryCode
-                val languageMatch = preferences.selectedLanguage == null || 
-                                  station.language == preferences.selectedLanguage
-                val tagsMatch = preferences.selectedTags.isEmpty() || 
-                              preferences.selectedTags.any { it in station.tags }
-                
-                countryMatch && languageMatch && tagsMatch
+            val hasCountryFilter = !preferences.selectedCountryCode.isNullOrBlank()
+            val hasLanguageFilter = !preferences.selectedLanguage.isNullOrBlank()
+            val hasTagFilter = preferences.selectedTags.isNotEmpty()
+
+            // If no filter criteria are set at all, show everything
+            if (!hasCountryFilter && !hasLanguageFilter && !hasTagFilter) {
+                stations
+            } else {
+                stations.filter { station ->
+                    val countryMatch = !hasCountryFilter ||
+                            station.countryCode == preferences.selectedCountryCode
+                    val languageMatch = !hasLanguageFilter ||
+                            station.language == preferences.selectedLanguage
+                    val tagsMatch = !hasTagFilter ||
+                            preferences.selectedTags.any { it in station.tags }
+
+                    countryMatch && languageMatch && tagsMatch
+                }
             }
         } else {
             stations

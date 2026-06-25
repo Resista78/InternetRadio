@@ -33,6 +33,7 @@ import com.armanmaurya.internetradio.ui.player.PlayerViewModel
 import com.armanmaurya.internetradio.ui.theme.InternetRadioTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import androidx.lifecycle.lifecycleScope
 import javax.inject.Inject
 
 import androidx.appcompat.app.AppCompatActivity
@@ -47,6 +48,13 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
+        // Sync whatever locale is currently active (set by our settings or system App Info)
+        // back to DataStore so our UI always reflects the real current language.
+        val currentLocales = androidx.appcompat.app.AppCompatDelegate.getApplicationLocales()
+        val activeTag = if (currentLocales.isEmpty) "System" else currentLocales[0]?.toLanguageTag() ?: "System"
+        lifecycleScope.launch {
+            settingsRepository.setAppLanguage(activeTag)
+        }
         enableEdgeToEdge()
         setContent {
             val appPreferences by settingsRepository.appPreferencesFlow

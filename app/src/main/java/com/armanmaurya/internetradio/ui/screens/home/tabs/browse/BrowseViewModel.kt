@@ -68,6 +68,9 @@ class BrowseViewModel @Inject constructor(
                         isGridView = params.isGridView
                     )
                 }
+                // If a search is active, don't reload stations — the search results
+                // should be preserved (e.g. when toggling grid/list view).
+                if (_uiState.value.isSearchActive) return@onEach
                 if (params.selectedCountryCode == null) {
                     detectCountryIfNeeded()
                 } else {
