@@ -36,6 +36,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.AnnotatedString
 import coil3.compose.AsyncImage
 import com.armanmaurya.internetradio.R
@@ -82,6 +83,7 @@ fun PlayerSheetContent(
 
     val clipboardManager = LocalClipboardManager.current
     val context = LocalContext.current
+    val uriHandler = LocalUriHandler.current
 
     var isTimerOptionsExpanded by remember { mutableStateOf(false) }
 
@@ -204,6 +206,26 @@ fun PlayerSheetContent(
                     }
                 }
 
+                if (station.homepage.isNotBlank()) {
+                    IconButton(onClick = {
+                        try {
+                            var url = station.homepage
+                            if (!url.startsWith("http://") && !url.startsWith("https://")) {
+                                url = "http://$url"
+                            }
+                            uriHandler.openUri(url)
+                        } catch (e: Exception) {
+                            Toast.makeText(context, "Invalid URL", Toast.LENGTH_SHORT).show()
+                        }
+                    }) {
+                        Icon(
+                            imageVector = Icons.Default.Public,
+                            contentDescription = "Homepage",
+                            tint = LocalContentColor.current
+                        )
+                    }
+                }
+
                 IconButton(onClick = onToggleFavorite) {
                     Icon(
                         imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
@@ -244,13 +266,36 @@ fun PlayerSheetContent(
                         )
                     }
 
-                    IconButton(onClick = onToggleFavorite) {
-                        Icon(
-                            imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                            contentDescription = "Toggle Favorite",
-                            modifier = Modifier.size(32.dp),
-                            tint = if (isFavorite) Color.Red else LocalContentColor.current
-                        )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        if (station.homepage.isNotBlank()) {
+                            IconButton(onClick = {
+                                try {
+                                    var url = station.homepage
+                                    if (!url.startsWith("http://") && !url.startsWith("https://")) {
+                                        url = "http://$url"
+                                    }
+                                    uriHandler.openUri(url)
+                                } catch (e: Exception) {
+                                    Toast.makeText(context, "Invalid URL", Toast.LENGTH_SHORT).show()
+                                }
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Default.Public,
+                                    contentDescription = "Homepage",
+                                    modifier = Modifier.size(28.dp),
+                                    tint = LocalContentColor.current
+                                )
+                            }
+                        }
+
+                        IconButton(onClick = onToggleFavorite) {
+                            Icon(
+                                imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                                contentDescription = "Toggle Favorite",
+                                modifier = Modifier.size(32.dp),
+                                tint = if (isFavorite) Color.Red else LocalContentColor.current
+                            )
+                        }
                     }
                 }
 
