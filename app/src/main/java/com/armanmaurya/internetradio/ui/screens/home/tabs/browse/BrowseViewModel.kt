@@ -3,6 +3,7 @@ package com.armanmaurya.internetradio.ui.screens.home.tabs.browse
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.armanmaurya.internetradio.data.model.RadioStation
+import com.armanmaurya.internetradio.data.repository.FavoriteRepository
 import com.armanmaurya.internetradio.data.repository.SettingsRepository
 import com.armanmaurya.internetradio.data.repository.StationRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -30,11 +31,16 @@ data class BrowseUiState(
 @HiltViewModel
 class BrowseViewModel @Inject constructor(
     private val repository: StationRepository,
-    private val settingsRepository: SettingsRepository
+    private val settingsRepository: SettingsRepository,
+    private val favoriteRepository: FavoriteRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(BrowseUiState())
     val uiState: StateFlow<BrowseUiState> = _uiState.asStateFlow()
+
+    val favoriteStationUuids: StateFlow<Set<String>> = favoriteRepository.getAllFavorites()
+        .map { favorites -> favorites.map { it.stationUuid }.toSet() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
 
     private var currentOffset = 0
     private val pageSize = 60

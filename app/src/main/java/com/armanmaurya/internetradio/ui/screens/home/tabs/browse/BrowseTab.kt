@@ -59,6 +59,7 @@ fun BrowseContent(
     isPlaybackActive: Boolean = false
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val favoriteStationUuids by viewModel.favoriteStationUuids.collectAsStateWithLifecycle()
     
     val gridState = androidx.compose.foundation.lazy.grid.rememberLazyGridState()
     
@@ -156,7 +157,8 @@ fun BrowseContent(
                                 .fillMaxWidth()
                                 .animateItem(),
                             isCurrentlyPlaying = playingStationUuid == station.stationUuid,
-                            isPlaybackActive = isPlaybackActive
+                            isPlaybackActive = isPlaybackActive,
+                            isFavorite = favoriteStationUuids.contains(station.stationUuid)
                         )
                     } else {
                         StationListCard(
@@ -166,7 +168,8 @@ fun BrowseContent(
                                 .fillMaxWidth()
                                 .animateItem(),
                             isCurrentlyPlaying = playingStationUuid == station.stationUuid,
-                            isPlaybackActive = isPlaybackActive
+                            isPlaybackActive = isPlaybackActive,
+                            isFavorite = favoriteStationUuids.contains(station.stationUuid)
                         )
                     }
                 }

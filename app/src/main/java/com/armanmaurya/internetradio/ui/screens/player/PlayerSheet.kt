@@ -206,26 +206,6 @@ fun PlayerSheetContent(
                     }
                 }
 
-                if (station.homepage.isNotBlank()) {
-                    IconButton(onClick = {
-                        try {
-                            var url = station.homepage
-                            if (!url.startsWith("http://") && !url.startsWith("https://")) {
-                                url = "http://$url"
-                            }
-                            uriHandler.openUri(url)
-                        } catch (e: Exception) {
-                            Toast.makeText(context, "Invalid URL", Toast.LENGTH_SHORT).show()
-                        }
-                    }) {
-                        Icon(
-                            imageVector = Icons.Default.Public,
-                            contentDescription = "Homepage",
-                            tint = LocalContentColor.current
-                        )
-                    }
-                }
-
                 IconButton(onClick = onToggleFavorite) {
                     Icon(
                         imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
