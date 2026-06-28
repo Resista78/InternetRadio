@@ -12,7 +12,13 @@ import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
 import com.armanmaurya.internetradio.MainActivity
 import com.armanmaurya.internetradio.data.model.RadioStation
+import com.armanmaurya.internetradio.data.repository.TrackHistoryRepository
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -24,8 +30,13 @@ class PlaybackService : MediaLibraryService() {
     @Inject
     lateinit var autoCallback: AutoMediaLibraryCallback
 
+    @Inject
+    lateinit var trackHistoryRepository: TrackHistoryRepository
+
     private var player: Player? = null
     private var mediaLibrarySession: MediaLibrarySession? = null
+    
+    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     /**
      * Watches for station changes so the ❤️ button on Android Auto's now-playing
@@ -57,6 +68,12 @@ class PlaybackService : MediaLibraryService() {
                             
                         // Update metadata without interrupting playback
                         currentPlayer.replaceMediaItem(currentPlayer.currentMediaItemIndex, newMediaItem)
+                        
+                        // Log the track history
+                        val stationUuid = currentMediaItem.mediaId
+                        serviceScope.launch {
+                            trackHistoryRepository.logTrack(stationUuid, trackTitle)
+                        }
                     }
                 }
             }
@@ -87,9 +104,9 @@ class PlaybackService : MediaLibraryService() {
                 // Only reset if we are actually paused. This prevents interrupting 
                 // playback if a redundant play() command is received.
                 if (item != null && !playWhenReady) {
-                    // Re-setting the item and preparing clears the old buffer 
-                    // and establishes a new live connection.
-                    setMediaItem(item)
+                    // Seeking to the default position (the live edge) forces ExoPlayer 
+                    // to discard the stale buffer and reconnect.
+                    seekToDefaultPosition()
                     prepare()
                 }
                 super.play()
@@ -121,6 +138,7 @@ class PlaybackService : MediaLibraryService() {
     }
 
     override fun onDestroy() {
+        serviceScope.cancel()
         // Clear session ref first so the callback stops pushing updates
         autoCallback.activeSession = null
         mediaLibrarySession?.run {

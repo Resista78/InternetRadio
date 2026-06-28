@@ -15,8 +15,14 @@ import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Brightness4
 import androidx.compose.material.icons.filled.Contrast
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.StarRate
 import androidx.compose.material.icons.filled.Translate
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -56,6 +62,7 @@ fun SettingsScreen(
     // UI-only state for expand/collapse
     var themeExpanded by remember { mutableStateOf(false) }
     var languageExpanded by remember { mutableStateOf(false) }
+    var showHistoryLimitDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         modifier = Modifier.padding(bottom = contentPadding.calculateBottomPadding()),
@@ -82,7 +89,10 @@ fun SettingsScreen(
                 languages = rememberAvailableLanguages(),
                 languageExpanded = languageExpanded,
                 onToggleLanguageExpanded = { languageExpanded = !languageExpanded },
-                onSetLanguage = viewModel::setAppLanguage
+                onSetLanguage = viewModel::setAppLanguage,
+                showHistoryLimitDialog = showHistoryLimitDialog,
+                onToggleHistoryLimitDialog = { showHistoryLimitDialog = !showHistoryLimitDialog },
+                onSetHistoryLimit = viewModel::setTrackHistoryLimit
             )
             AboutSection(onAboutClick)
         }
@@ -163,7 +173,10 @@ private fun GeneralSection(
     languages: List<Pair<String, String>>,
     languageExpanded: Boolean,
     onToggleLanguageExpanded: () -> Unit,
-    onSetLanguage: (String) -> Unit
+    onSetLanguage: (String) -> Unit,
+    showHistoryLimitDialog: Boolean,
+    onToggleHistoryLimitDialog: () -> Unit,
+    onSetHistoryLimit: (Int) -> Unit
 ) {
     val currentLocales = androidx.appcompat.app.AppCompatDelegate.getApplicationLocales()
     val activeLanguageCode = if (currentLocales.isEmpty) {
@@ -187,6 +200,50 @@ private fun GeneralSection(
                     onClick = { onSetLanguage(code) }
                 )
             }
+        }
+
+        Item(
+            title = "Track History Limit",
+            subtitle = "${uiState.trackHistoryLimit} tracks",
+            onClick = onToggleHistoryLimitDialog,
+            icon = Icons.Default.History
+        )
+
+        if (showHistoryLimitDialog) {
+            var inputLimit by remember { mutableStateOf(uiState.trackHistoryLimit.toString()) }
+            AlertDialog(
+                onDismissRequest = onToggleHistoryLimitDialog,
+                title = { Text("Track History Limit") },
+                text = {
+                    OutlinedTextField(
+                        value = inputLimit,
+                        onValueChange = { newValue ->
+                            if (newValue.all { it.isDigit() }) {
+                                inputLimit = newValue
+                            }
+                        },
+                        label = { Text("Number of tracks") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        singleLine = true
+                    )
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            val limitInt = inputLimit.toIntOrNull() ?: 50
+                            onSetHistoryLimit(limitInt.coerceIn(1, 500))
+                            onToggleHistoryLimitDialog()
+                        }
+                    ) {
+                        Text(stringResource(android.R.string.ok))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = onToggleHistoryLimitDialog) {
+                        Text(stringResource(android.R.string.cancel))
+                    }
+                }
+            )
         }
     }
 }

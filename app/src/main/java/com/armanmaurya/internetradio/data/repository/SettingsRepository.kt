@@ -50,6 +50,7 @@ class SettingsRepository @Inject constructor(
         val IS_GRID_VIEW_RECENT = booleanPreferencesKey("is_grid_view_recent")
         val IS_GRID_VIEW_FAVORITES = booleanPreferencesKey("is_grid_view_favorites")
         val IS_GRID_VIEW_ADDED = booleanPreferencesKey("is_grid_view_added")
+        val TRACK_HISTORY_LIMIT = androidx.datastore.preferences.core.intPreferencesKey("track_history_limit")
     }
 
     val appPreferencesFlow: Flow<AppPreferences> = context.dataStore.data
@@ -80,6 +81,7 @@ class SettingsRepository @Inject constructor(
             val isGridViewRecent = preferences[PreferencesKeys.IS_GRID_VIEW_RECENT] ?: true
             val isGridViewFavorites = preferences[PreferencesKeys.IS_GRID_VIEW_FAVORITES] ?: true
             val isGridViewAdded = preferences[PreferencesKeys.IS_GRID_VIEW_ADDED] ?: true
+            val trackHistoryLimit = preferences[PreferencesKeys.TRACK_HISTORY_LIMIT] ?: 50
             
             AppPreferences(
                 themeMode = themeMode, 
@@ -98,7 +100,8 @@ class SettingsRepository @Inject constructor(
                 isGridViewBrowse = isGridViewBrowse,
                 isGridViewRecent = isGridViewRecent,
                 isGridViewFavorites = isGridViewFavorites,
-                isGridViewAdded = isGridViewAdded
+                isGridViewAdded = isGridViewAdded,
+                trackHistoryLimit = trackHistoryLimit
             )
         }
 
@@ -211,6 +214,12 @@ class SettingsRepository @Inject constructor(
     suspend fun setGridViewAdded(isGrid: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.IS_GRID_VIEW_ADDED] = isGrid
+        }
+    }
+
+    suspend fun setTrackHistoryLimit(limit: Int) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.TRACK_HISTORY_LIMIT] = limit
         }
     }
 }

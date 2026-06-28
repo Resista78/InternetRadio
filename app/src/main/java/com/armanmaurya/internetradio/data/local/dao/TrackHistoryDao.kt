@@ -1,0 +1,23 @@
+package com.armanmaurya.internetradio.data.local.dao
+
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import com.armanmaurya.internetradio.data.local.entity.TrackHistoryEntity
+import kotlinx.coroutines.flow.Flow
+
+@Dao
+interface TrackHistoryDao {
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(trackHistory: TrackHistoryEntity)
+
+    @Query("SELECT * FROM track_history WHERE stationUuid = :stationUuid ORDER BY timestamp DESC LIMIT :limit")
+    fun getTrackHistoryForStation(stationUuid: String, limit: Int = 50): Flow<List<TrackHistoryEntity>>
+
+    @Query("DELETE FROM track_history WHERE stationUuid = :stationUuid AND id NOT IN (SELECT id FROM track_history WHERE stationUuid = :stationUuid ORDER BY timestamp DESC LIMIT :keepCount)")
+    suspend fun cleanupOldTracksForStation(stationUuid: String, keepCount: Int = 50)
+    
+    @Query("SELECT * FROM track_history WHERE stationUuid = :stationUuid ORDER BY timestamp DESC LIMIT 1")
+    suspend fun getLatestTrackForStation(stationUuid: String): TrackHistoryEntity?
+}

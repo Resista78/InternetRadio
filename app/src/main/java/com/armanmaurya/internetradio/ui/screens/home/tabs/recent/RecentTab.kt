@@ -5,6 +5,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FilterList
@@ -18,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.armanmaurya.internetradio.data.model.RadioStation
+import com.armanmaurya.internetradio.player.PlaybackSource
 import com.armanmaurya.internetradio.ui.screens.home.components.StationCard
 import com.armanmaurya.internetradio.ui.screens.home.components.StationListCard
 import androidx.compose.material.icons.filled.GridView
@@ -28,7 +30,7 @@ import com.armanmaurya.internetradio.R
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecentContent(
-    onStationClick: (RadioStation) -> Unit,
+    onStationClick: (List<RadioStation>, Int, PlaybackSource) -> Unit,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp),
     viewModel: RecentViewModel = hiltViewModel(),
@@ -118,14 +120,14 @@ fun RecentContent(
                 }
             }
         } else {
-            items(
+            itemsIndexed(
                 items = recentStations,
-                key = { it.stationUuid }
-            ) { station ->
+                key = { _, it -> it.stationUuid }
+            ) { index, station ->
                 if (isGridView) {
                     StationCard(
                         station = station,
-                        onClick = { onStationClick(station) },
+                        onClick = { onStationClick(recentStations, index, PlaybackSource.Recent) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .animateItem(),
@@ -136,7 +138,7 @@ fun RecentContent(
                 } else {
                     StationListCard(
                         station = station,
-                        onClick = { onStationClick(station) },
+                        onClick = { onStationClick(recentStations, index, PlaybackSource.Recent) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .animateItem(),

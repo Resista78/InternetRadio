@@ -284,26 +284,26 @@ fun HomeScreen(
                 ) { page ->
                     when (page) {
                         0 -> BrowseContent(
-                            onStationClick = { playerViewModel.play(it) },
+                            onStationClick = { stations, index, source -> playerViewModel.play(stations, index, source) },
                             contentPadding = contentPadding,
                             viewModel = browseViewModel,
                             playingStationUuid = playingStationUuid,
                             isPlaybackActive = isPlaybackActive
                         )
                         1 -> RecentContent(
-                            onStationClick = { playerViewModel.play(it) },
+                            onStationClick = { stations, index, source -> playerViewModel.play(stations, index, source) },
                             contentPadding = contentPadding,
                             playingStationUuid = playingStationUuid,
                             isPlaybackActive = isPlaybackActive
                         )
                         2 -> FavoritesContent(
-                            onStationClick = { playerViewModel.play(it) },
+                            onStationClick = { stations, index, source -> playerViewModel.play(stations, index, source) },
                             contentPadding = contentPadding,
                             playingStationUuid = playingStationUuid,
                             isPlaybackActive = isPlaybackActive
                         )
                         3 -> AddedContent(
-                            onStationClick = { playerViewModel.play(it) },
+                            onStationClick = { stations, index, source -> playerViewModel.play(stations, index, source) },
                             contentPadding = contentPadding,
                             viewModel = addedViewModel,
                             playingStationUuid = playingStationUuid,

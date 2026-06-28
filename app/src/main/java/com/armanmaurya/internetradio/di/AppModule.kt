@@ -121,4 +121,9 @@ object AppModule {
     @Singleton
     fun provideUserStationDao(database: RadioDatabase): com.armanmaurya.internetradio.data.local.dao.UserStationDao =
         database.userStationDao
+
+    @Provides
+    @Singleton
+    fun provideTrackHistoryDao(database: RadioDatabase): com.armanmaurya.internetradio.data.local.dao.TrackHistoryDao =
+        database.trackHistoryDao
 }

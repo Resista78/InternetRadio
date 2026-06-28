@@ -124,16 +124,14 @@ class MainActivity : AppCompatActivity() {
                             }
 
                             val isFavorite by playerViewModel.isFavorite.collectAsStateWithLifecycle()
+                            val trackHistory by playerViewModel.trackHistory.collectAsStateWithLifecycle()
 
                             PlayerSheetContent(
                                 playbackState = playbackState,
                                 isFavorite = isFavorite,
+                                trackHistory = trackHistory,
                                 progress = progress,
                                 onTogglePlayPause = playerViewModel::togglePlayPause,
-                                onStop = {
-                                    playerViewModel.stop()
-                                    scope.launch { scaffoldState.bottomSheetState.hide() }
-                                },
                                 onToggleFavorite = playerViewModel::toggleFavorite,
                                 onSetSleepTimer = playerViewModel::setSleepTimer,
                                 onCancelSleepTimer = playerViewModel::cancelSleepTimer,
@@ -142,7 +140,9 @@ class MainActivity : AppCompatActivity() {
                                 },
                                 onExpand = {
                                     scope.launch { scaffoldState.bottomSheetState.expand() }
-                                }
+                                },
+                                onNext = playerViewModel::next,
+                                onPrevious = playerViewModel::previous
                             )
                         }
                     }

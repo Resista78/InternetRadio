@@ -53,4 +53,10 @@ class SettingsViewModel @Inject constructor(
             androidx.appcompat.app.AppCompatDelegate.setApplicationLocales(localeList)
         }
     }
+
+    fun setTrackHistoryLimit(limit: Int) {
+        viewModelScope.launch {
+            settingsRepository.setTrackHistoryLimit(limit)
+        }
+    }
 }

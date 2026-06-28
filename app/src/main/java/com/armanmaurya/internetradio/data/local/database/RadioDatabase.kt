@@ -8,21 +8,25 @@ import androidx.room.TypeConverters
 import androidx.room.migration.AutoMigrationSpec
 import com.armanmaurya.internetradio.data.local.dao.FavoriteStationDao
 import com.armanmaurya.internetradio.data.local.dao.RecentStationDao
+import com.armanmaurya.internetradio.data.local.dao.TrackHistoryDao
 import com.armanmaurya.internetradio.data.local.dao.UserStationDao
 import com.armanmaurya.internetradio.data.local.entity.FavoriteStationEntity
 import com.armanmaurya.internetradio.data.local.entity.RecentStationEntity
+import com.armanmaurya.internetradio.data.local.entity.TrackHistoryEntity
 import com.armanmaurya.internetradio.data.local.entity.UserStationEntity
 
 @Database(
     entities = [
         FavoriteStationEntity::class,
         RecentStationEntity::class,
-        UserStationEntity::class
+        UserStationEntity::class,
+        TrackHistoryEntity::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = true,
     autoMigrations = [
-        AutoMigration(from = 1, to = 2, spec = RadioDatabase.Migration1To2Spec::class)
+        AutoMigration(from = 1, to = 2, spec = RadioDatabase.Migration1To2Spec::class),
+        AutoMigration(from = 2, to = 3)
     ]
 )
 @TypeConverters(Converters::class)
@@ -36,4 +40,5 @@ abstract class RadioDatabase : RoomDatabase() {
     abstract val favoriteStationDao: FavoriteStationDao
     abstract val recentStationDao: RecentStationDao
     abstract val userStationDao: UserStationDao
+    abstract val trackHistoryDao: TrackHistoryDao
 }

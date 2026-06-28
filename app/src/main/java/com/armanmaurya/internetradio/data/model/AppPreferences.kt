@@ -19,5 +19,6 @@ data class AppPreferences(
     val isGridViewBrowse: Boolean = true,
     val isGridViewRecent: Boolean = true,
     val isGridViewFavorites: Boolean = true,
-    val isGridViewAdded: Boolean = true
+    val isGridViewAdded: Boolean = true,
+    val trackHistoryLimit: Int = 50
 )

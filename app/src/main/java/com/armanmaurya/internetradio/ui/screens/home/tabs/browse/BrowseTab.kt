@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.ArrowDownward
@@ -43,6 +44,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.res.stringResource
 import com.armanmaurya.internetradio.R
 import com.armanmaurya.internetradio.data.model.RadioStation
+import com.armanmaurya.internetradio.player.PlaybackSource
 import com.armanmaurya.internetradio.ui.screens.home.components.StationCard
 import com.armanmaurya.internetradio.ui.screens.home.components.StationListCard
 import androidx.compose.material.icons.filled.GridView
@@ -51,7 +53,7 @@ import androidx.compose.material3.IconButton
 
 @Composable
 fun BrowseContent(
-    onStationClick: (RadioStation) -> Unit,
+    onStationClick: (List<RadioStation>, Int, PlaybackSource) -> Unit,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp),
     viewModel: BrowseViewModel = hiltViewModel(),
@@ -145,14 +147,22 @@ fun BrowseContent(
             }
 
             else -> {
-                items(
+                itemsIndexed(
                     items = uiState.stations,
-                    key = { it.stationUuid },
-                ) { station ->
+                    key = { _, it -> it.stationUuid },
+                ) { index, station ->
+                    val source = PlaybackSource.Browse(
+                        name = uiState.searchQuery,
+                        countryCode = uiState.selectedCountryCode,
+                        language = uiState.selectedLanguage,
+                        tagList = uiState.selectedTags.joinToString(","),
+                        order = uiState.order,
+                        reverse = uiState.reverse
+                    )
                     if (uiState.isGridView) {
                         StationCard(
                             station = station,
-                            onClick = { onStationClick(station) },
+                            onClick = { onStationClick(uiState.stations, index, source) },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .animateItem(),
@@ -163,7 +173,7 @@ fun BrowseContent(
                     } else {
                         StationListCard(
                             station = station,
-                            onClick = { onStationClick(station) },
+                            onClick = { onStationClick(uiState.stations, index, source) },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .animateItem(),
