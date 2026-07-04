@@ -36,6 +36,10 @@ import kotlinx.coroutines.launch
 import androidx.lifecycle.lifecycleScope
 import javax.inject.Inject
 
+import android.app.UiModeManager
+import android.content.Context
+import android.content.Intent
+import android.content.res.Configuration
 import androidx.appcompat.app.AppCompatActivity
 
 @AndroidEntryPoint
@@ -46,6 +50,13 @@ class MainActivity : AppCompatActivity() {
 
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
+        val uiModeManager = getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
+        if (uiModeManager.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION) {
+            startActivity(Intent(this, TvActivity::class.java))
+            finish()
+            return
+        }
+
         installSplashScreen()
         super.onCreate(savedInstanceState)
         // Sync whatever locale is currently active (set by our settings or system App Info)

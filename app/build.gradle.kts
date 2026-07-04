@@ -101,6 +101,9 @@ dependencies {
     implementation(libs.androidx.media3.ui)
     implementation(libs.androidx.car.app)
 
+    implementation(libs.androidx.tv.foundation)
+    implementation(libs.androidx.tv.material)
+
 
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
