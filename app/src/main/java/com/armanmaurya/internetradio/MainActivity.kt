@@ -27,10 +27,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.rememberNavController
 import com.armanmaurya.internetradio.data.repository.SettingsRepository
-import com.armanmaurya.internetradio.ui.navigation.AppNavHost
-import com.armanmaurya.internetradio.ui.screens.player.PlayerSheetContent
-import com.armanmaurya.internetradio.ui.player.PlayerViewModel
-import com.armanmaurya.internetradio.ui.theme.InternetRadioTheme
+import com.armanmaurya.internetradio.ui.mobile.navigation.AppNavHost
+import com.armanmaurya.internetradio.ui.mobile.screens.player.PlayerSheetContent
+import com.armanmaurya.internetradio.ui.shared.viewmodels.PlayerViewModel
+import com.armanmaurya.internetradio.ui.shared.theme.InternetRadioTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import androidx.lifecycle.lifecycleScope

@@ -6,7 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import dagger.hilt.android.AndroidEntryPoint
-import com.armanmaurya.internetradio.ui.tv.TvApp
+import com.armanmaurya.internetradio.ui.tv.screens.home.HomeScreen
 
 @AndroidEntryPoint
 class TvActivity : ComponentActivity() {
@@ -15,7 +15,7 @@ class TvActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            TvApp()
+            HomeScreen()
         }
     }
 }

@@ -1,6 +1,6 @@
 package com.armanmaurya.internetradio.data.model
 
-import com.armanmaurya.internetradio.ui.theme.AppTheme
+import com.armanmaurya.internetradio.ui.shared.theme.AppTheme
 
 data class AppPreferences(
     val themeMode: AppTheme = AppTheme.SYSTEM,
