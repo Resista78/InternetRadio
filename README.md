@@ -13,17 +13,22 @@ InternetRadio is an Android app for discovering and listening to radio stations 
 ## Features
 
 - **Global Radio Access**: Browse and stream thousands of radio stations globally.
-- **Search & Filter**: Easily find stations by country or language.
-- **Favorites & History**: Keep track of your favorite stations and recently played streams.
+- **Search, Filter & Sort**: Easily find stations by country, language, or tags, with advanced sorting options.
+- **Library & Customization**: Manage station Library. Edit any station and configure the startup screen.
+- **Android TV Support**: Enjoy a fully optimized and tailored experience on Android TV devices.
+- **Android Auto Support**: Support for car screen via android auto.
+- **Recent History**: Keep track of your recently played streams.
 - **Modern UI**: Built with Jetpack Compose for a smooth, intuitive, and responsive experience.
 
 ## Screenshots
 
 <div align="center">
-  <img width="23%" src="fastlane/metadata/android/en-US/images/phoneScreenshots/1.png" alt="Browse Screen">
-  <img width="23%" src="fastlane/metadata/android/en-US/images/phoneScreenshots/2.png" alt="Player Screen">
-  <img width="23%" src="fastlane/metadata/android/en-US/images/phoneScreenshots/3.png" alt="Search Screen">
-  <img width="23%" src="fastlane/metadata/android/en-US/images/phoneScreenshots/4.png" alt="Settings Screen">
+  <img width="30%" src="fastlane/metadata/android/en-US/images/phoneScreenshots/1.png" alt="Browse Screen">
+  <img width="30%" src="fastlane/metadata/android/en-US/images/phoneScreenshots/2.png" alt="Player Screen">
+  <img width="30%" src="fastlane/metadata/android/en-US/images/phoneScreenshots/3.png" alt="Search Screen">
+  <img width="30%" src="fastlane/metadata/android/en-US/images/phoneScreenshots/4.png" alt="Settings Screen">
+  <img width="30%" src="fastlane/metadata/android/en-US/images/phoneScreenshots/5.png" alt="Library Screen">
+  <img width="30%" src="fastlane/metadata/android/en-US/images/phoneScreenshots/6.png" alt="Edit Station Screen">
 </div>
 
 ## Tech Stack
