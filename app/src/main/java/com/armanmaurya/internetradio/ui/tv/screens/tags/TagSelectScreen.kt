@@ -90,7 +90,9 @@ fun TagSelectScreen(
                         colors = ClickableSurfaceDefaults.colors(
                             containerColor = if (isSelected) MaterialTheme.colorScheme.inverseSurface.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
                             focusedContainerColor = MaterialTheme.colorScheme.inverseSurface,
-                            pressedContainerColor = MaterialTheme.colorScheme.inverseSurface
+                            pressedContainerColor = MaterialTheme.colorScheme.inverseSurface,
+                            contentColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                            focusedContentColor = MaterialTheme.colorScheme.inverseOnSurface
                         ),
                         shape = ClickableSurfaceDefaults.shape(shape = RoundedCornerShape(8.dp)),
                         modifier = Modifier.fillMaxWidth()
@@ -104,21 +106,19 @@ fun TagSelectScreen(
                                 Text(
                                     text = tag.name,
                                     style = MaterialTheme.typography.titleMedium,
-                                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                                     maxLines = 1
                                 )
                                 Text(
                                     text = "${tag.stationCount} stns",
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                                    color = androidx.tv.material3.LocalContentColor.current.copy(alpha = 0.7f),
                                     maxLines = 1
                                 )
                             }
                             if (isSelected) {
                                 Icon(
                                     imageVector = Icons.Default.Check,
-                                    contentDescription = "Selected",
-                                    tint = MaterialTheme.colorScheme.primary
+                                    contentDescription = "Selected"
                                 )
                             }
                         }

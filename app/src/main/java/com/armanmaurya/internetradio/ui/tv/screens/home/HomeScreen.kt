@@ -179,18 +179,35 @@ fun HomeScreen(
                                     modifier = Modifier.padding(4.dp)
                                 ) {
                                     val fallbackPainter = painterResource(id = R.drawable.ic_launcher_foreground)
-                                    AsyncImage(
-                                        model = playbackState.currentStation!!.favicon.ifEmpty { null },
-                                        contentDescription = "Station Thumbnail",
-                                        placeholder = fallbackPainter,
-                                        error = fallbackPainter,
-                                        fallback = fallbackPainter,
-                                        modifier = Modifier
-                                            .size(48.dp)
-                                            .clip(RoundedCornerShape(8.dp))
-                                            .background(MaterialTheme.colorScheme.surfaceVariant),
-                                        contentScale = ContentScale.Crop
-                                    )
+                                    Box {
+                                        AsyncImage(
+                                            model = playbackState.currentStation!!.favicon.ifEmpty { null },
+                                            contentDescription = "Station Thumbnail",
+                                            placeholder = fallbackPainter,
+                                            error = fallbackPainter,
+                                            fallback = fallbackPainter,
+                                            modifier = Modifier
+                                                .size(48.dp)
+                                                .clip(RoundedCornerShape(8.dp))
+                                                .background(MaterialTheme.colorScheme.surfaceVariant),
+                                            contentScale = ContentScale.Crop
+                                        )
+                                        
+                                        if (playbackState.isPlaying || playbackState.isLoading) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(48.dp)
+                                                    .clip(RoundedCornerShape(8.dp))
+                                                    .background(Color.Black.copy(alpha = 0.4f)),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                com.armanmaurya.internetradio.ui.mobile.screens.home.components.PlayingVisualizer(
+                                                    isPlaybackActive = playbackState.isPlaying,
+                                                    barCount = 3
+                                                )
+                                            }
+                                        }
+                                    }
 
                                     androidx.compose.animation.AnimatedVisibility(
                                         visible = drawerValue == DrawerValue.Open

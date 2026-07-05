@@ -12,6 +12,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,11 +25,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.tv.material3.Button
@@ -55,12 +59,30 @@ fun BrowseScreen(
     val libraryUuids by libraryViewModel.stationUuids.collectAsStateWithLifecycle()
 
     Box(modifier = modifier.fillMaxSize()) {
+        val gridState = rememberLazyGridState()
+
+        val shouldLoadMore = remember {
+            derivedStateOf {
+                val lastVisibleItem = gridState.layoutInfo.visibleItemsInfo.lastOrNull()
+                    ?: return@derivedStateOf false
+
+                lastVisibleItem.index >= gridState.layoutInfo.totalItemsCount - 9 // 3 rows early
+            }
+        }
+
+        LaunchedEffect(shouldLoadMore.value) {
+            if (shouldLoadMore.value && !uiState.isLoading && !uiState.isNextPageLoading && uiState.canLoadMore) {
+                viewModel.loadMoreStations()
+            }
+        }
+
         if (uiState.stations.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(if (uiState.isLoading) "Loading..." else "No stations found")
             }
         } else {
             LazyVerticalGrid(
+                state = gridState,
                 columns = GridCells.Fixed(4),
                 contentPadding = PaddingValues(top = 24.dp, bottom = 24.dp, end = 24.dp),
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -148,6 +170,19 @@ fun BrowseScreen(
                         isPlaybackActive = isPlaybackActive && station.stationUuid == playingStationUuid,
                         isFavorite = station.stationUuid in libraryUuids
                     )
+                }
+
+                if (uiState.isNextPageLoading) {
+                    item(span = { GridItemSpan(maxLineSpan) }) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            CircularProgressIndicator(modifier = Modifier.size(32.dp))
+                        }
+                    }
                 }
             }
         }

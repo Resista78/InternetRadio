@@ -20,7 +20,8 @@ fun PlayingVisualizer(
     barColor: Color = MaterialTheme.colorScheme.primary,
     barWidth: Dp = 4.dp,
     maxBarHeight: Dp = 24.dp,
-    minBarHeight: Dp = 4.dp
+    minBarHeight: Dp = 4.dp,
+    barCount: Int = 4
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "visualizer_transition")
 
@@ -49,9 +50,9 @@ fun PlayingVisualizer(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(2.dp)
     ) {
-        AnimatedBar(duration = 400, targetHeightFactor = 0.8f)
-        AnimatedBar(duration = 500, targetHeightFactor = 1.0f)
-        AnimatedBar(duration = 300, targetHeightFactor = 0.6f)
-        AnimatedBar(duration = 600, targetHeightFactor = 0.9f)
+        if (barCount > 0) AnimatedBar(duration = 400, targetHeightFactor = 0.8f)
+        if (barCount > 1) AnimatedBar(duration = 500, targetHeightFactor = 1.0f)
+        if (barCount > 2) AnimatedBar(duration = 300, targetHeightFactor = 0.6f)
+        if (barCount > 3) AnimatedBar(duration = 600, targetHeightFactor = 0.9f)
     }
 }

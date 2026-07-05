@@ -81,7 +81,9 @@ fun LanguageSelectScreen(
                         colors = ClickableSurfaceDefaults.colors(
                             containerColor = if (isSelected) MaterialTheme.colorScheme.inverseSurface.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
                             focusedContainerColor = MaterialTheme.colorScheme.inverseSurface,
-                            pressedContainerColor = MaterialTheme.colorScheme.inverseSurface
+                            pressedContainerColor = MaterialTheme.colorScheme.inverseSurface,
+                            contentColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                            focusedContentColor = MaterialTheme.colorScheme.inverseOnSurface
                         ),
                         shape = ClickableSurfaceDefaults.shape(shape = RoundedCornerShape(8.dp)),
                         modifier = Modifier.fillMaxWidth()
@@ -94,20 +96,18 @@ fun LanguageSelectScreen(
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = language.name,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                                    style = MaterialTheme.typography.titleMedium
                                 )
                                 Text(
                                     text = "${language.stationCount} stations",
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                                    color = androidx.tv.material3.LocalContentColor.current.copy(alpha = 0.7f)
                                 )
                             }
                             if (isSelected) {
                                 Icon(
                                     imageVector = Icons.Default.Check,
-                                    contentDescription = "Selected",
-                                    tint = MaterialTheme.colorScheme.primary
+                                    contentDescription = "Selected"
                                 )
                             }
                         }
