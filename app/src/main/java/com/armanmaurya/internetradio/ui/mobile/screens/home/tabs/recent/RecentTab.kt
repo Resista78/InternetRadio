@@ -38,7 +38,7 @@ fun RecentContent(
     isPlaybackActive: Boolean = false
 ) {
     val recentStations by viewModel.recentStations.collectAsStateWithLifecycle()
-    val favoriteStationUuids by viewModel.favoriteStationUuids.collectAsStateWithLifecycle()
+    val libraryStationUuids by viewModel.libraryStationUuids.collectAsStateWithLifecycle()
     val useFilter by viewModel.useFilter.collectAsStateWithLifecycle()
     val isGridView by viewModel.isGridView.collectAsStateWithLifecycle()
 
@@ -133,7 +133,7 @@ fun RecentContent(
                             .animateItem(),
                         isCurrentlyPlaying = playingStationUuid == station.stationUuid,
                         isPlaybackActive = isPlaybackActive,
-                        isFavorite = favoriteStationUuids.contains(station.stationUuid)
+                        isFavorite = libraryStationUuids.contains(station.stationUuid)
                     )
                 } else {
                     StationListCard(
@@ -144,7 +144,7 @@ fun RecentContent(
                             .animateItem(),
                         isCurrentlyPlaying = playingStationUuid == station.stationUuid,
                         isPlaybackActive = isPlaybackActive,
-                        isFavorite = favoriteStationUuids.contains(station.stationUuid)
+                        isFavorite = libraryStationUuids.contains(station.stationUuid)
                     )
                 }
             }

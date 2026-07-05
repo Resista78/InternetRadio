@@ -16,7 +16,7 @@ import androidx.media3.session.SessionError
 import androidx.media3.session.SessionResult
 import com.armanmaurya.internetradio.R
 import com.armanmaurya.internetradio.data.model.RadioStation
-import com.armanmaurya.internetradio.data.repository.FavoriteRepository
+import com.armanmaurya.internetradio.data.repository.LibraryRepository
 import com.armanmaurya.internetradio.data.repository.RecentRepository
 import com.armanmaurya.internetradio.data.repository.SettingsRepository
 import com.armanmaurya.internetradio.data.repository.StationRepository
@@ -44,7 +44,7 @@ object AutoBrowseTree {
 
 @Singleton
 class AutoMediaLibraryCallback @Inject constructor(
-    private val favoriteRepository: FavoriteRepository,
+    private val libraryRepository: LibraryRepository,
     private val recentRepository: RecentRepository,
     private val stationRepository: StationRepository,
     private val settingsRepository: SettingsRepository,
@@ -91,7 +91,7 @@ class AutoMediaLibraryCallback @Inject constructor(
         // Determine the initial heart state from whatever station is already loaded
         val currentStation = session.player.currentMediaItem?.localConfiguration?.tag as? RadioStation
         val isFav = currentStation?.let {
-            runBlocking { favoriteRepository.isFavoriteDirect(it.stationUuid) }
+            runBlocking { libraryRepository.isStationInLibraryDirect(it.stationUuid) }
         } ?: false
 
         // Grant the custom favourite command in addition to all default commands
@@ -190,9 +190,9 @@ class AutoMediaLibraryCallback @Inject constructor(
 
         searchScope.launch {
             val station = findStationByUuid(uuid) ?: return@launch
-            val wasFav = favoriteRepository.isFavoriteDirect(station.stationUuid)
-            if (wasFav) favoriteRepository.removeFavorite(station.stationUuid)
-            else favoriteRepository.addFavorite(station)
+            val wasFav = libraryRepository.isStationInLibraryDirect(station.stationUuid)
+            if (wasFav) libraryRepository.removeStationFromLibrary(station.stationUuid)
+            else libraryRepository.addStationToLibrary(station)
             // Push updated icon to every connected controller
             session.setCustomLayout(buildFavoriteButton(!wasFav))
         }
@@ -206,7 +206,7 @@ class AutoMediaLibraryCallback @Inject constructor(
     fun updateFavoriteButton(mediaId: String?) {
         val session = activeSession ?: return
         searchScope.launch {
-            val isFav = mediaId?.let { favoriteRepository.isFavoriteDirect(it) } ?: false
+            val isFav = mediaId?.let { libraryRepository.isStationInLibraryDirect(it) } ?: false
             session.setCustomLayout(buildFavoriteButton(isFav))
         }
     }
@@ -344,7 +344,7 @@ class AutoMediaLibraryCallback @Inject constructor(
     }
 
     private fun favoritesChildren(): List<MediaItem> = runBlocking {
-        favoriteRepository.getAllFavorites().first().map { it.toMediaItem() }
+        libraryRepository.getAllStations().first().map { it.toMediaItem() }
     }
 
     private fun buildTabItem(id: String, title: String, subtitle: String): MediaItem =
@@ -371,7 +371,7 @@ class AutoMediaLibraryCallback @Inject constructor(
      */
     private fun findStationByUuid(uuid: String): RadioStation? = runBlocking {
         recentRepository.getStationById(uuid)
-            ?: favoriteRepository.getAllFavorites().first().find { it.stationUuid == uuid }
+            ?: libraryRepository.getAllStations().first().find { it.stationUuid == uuid }
             ?: stationRepository.filterStations(order = "votes", reverse = true, limit = 30)
                 .getOrNull()?.find { it.stationUuid == uuid }
     }

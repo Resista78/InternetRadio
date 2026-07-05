@@ -2,7 +2,6 @@ package com.armanmaurya.internetradio.di
 
 import android.content.Context
 import androidx.room.Room
-import com.armanmaurya.internetradio.data.local.dao.FavoriteStationDao
 import com.armanmaurya.internetradio.data.local.database.RadioDatabase
 import com.armanmaurya.internetradio.data.remote.RadioBrowserApi
 import dagger.Module
@@ -105,22 +104,19 @@ object AppModule {
             context,
             RadioDatabase::class.java,
             "radio_database"
-        ).build()
+        )
+        .addMigrations(RadioDatabase.MIGRATION_3_4)
+        .build()
 
     @Provides
     @Singleton
-    fun provideFavoriteStationDao(database: RadioDatabase): FavoriteStationDao =
-        database.favoriteStationDao
+    fun provideLibraryStationDao(database: RadioDatabase): com.armanmaurya.internetradio.data.local.dao.LibraryStationDao =
+        database.libraryStationDao
 
     @Provides
     @Singleton
     fun provideRecentStationDao(database: RadioDatabase): com.armanmaurya.internetradio.data.local.dao.RecentStationDao =
         database.recentStationDao
-
-    @Provides
-    @Singleton
-    fun provideUserStationDao(database: RadioDatabase): com.armanmaurya.internetradio.data.local.dao.UserStationDao =
-        database.userStationDao
 
     @Provides
     @Singleton

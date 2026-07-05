@@ -19,6 +19,7 @@ data class HomeUiState(
     val selectedCountryCode: String? = null,
     val selectedLanguage: String? = null,
     val selectedTags: Set<String> = emptySet(),
+    val isPreferencesLoaded: Boolean = false
 )
 
 @HiltViewModel
@@ -33,6 +34,8 @@ class HomeViewModel @Inject constructor(
         observeSettings()
     }
 
+    private var isFirstLoad = true
+
     private fun observeSettings() {
         settingsRepository.appPreferencesFlow
             .onEach { preferences ->
@@ -40,9 +43,12 @@ class HomeViewModel @Inject constructor(
                     it.copy(
                         selectedCountryCode = preferences.selectedCountryCode,
                         selectedLanguage = preferences.selectedLanguage,
-                        selectedTags = preferences.selectedTags
+                        selectedTags = preferences.selectedTags,
+                        selectedTab = if (isFirstLoad) preferences.defaultTab else it.selectedTab,
+                        isPreferencesLoaded = true
                     )
                 }
+                isFirstLoad = false
             }
             .launchIn(viewModelScope)
     }

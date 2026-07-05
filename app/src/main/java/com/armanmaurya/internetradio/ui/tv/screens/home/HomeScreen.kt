@@ -11,12 +11,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.LibraryMusic
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Label
-import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.Sell
+import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.FilterList
@@ -54,12 +54,11 @@ import kotlinx.coroutines.launch
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.background
@@ -74,13 +73,14 @@ import androidx.tv.material3.ModalNavigationDrawer
 import androidx.tv.material3.NavigationDrawerItem
 import androidx.tv.material3.NavigationDrawerItemDefaults
 import androidx.tv.material3.Surface
+import androidx.tv.material3.SelectableSurfaceDefaults
 import androidx.tv.material3.Text
 import androidx.tv.material3.rememberDrawerState
 import com.armanmaurya.internetradio.ui.shared.viewmodels.PlayerViewModel
 import com.armanmaurya.internetradio.ui.mobile.screens.home.HomeViewModel
-import com.armanmaurya.internetradio.ui.shared.viewmodels.AddedViewModel
+
 import com.armanmaurya.internetradio.ui.shared.viewmodels.BrowseViewModel
-import com.armanmaurya.internetradio.ui.shared.viewmodels.FavoritesViewModel
+import com.armanmaurya.internetradio.ui.shared.viewmodels.LibraryViewModel
 import com.armanmaurya.internetradio.ui.shared.viewmodels.RecentViewModel
 import com.armanmaurya.internetradio.ui.shared.theme.TvInternetRadioTheme
 import androidx.navigation.compose.rememberNavController
@@ -93,8 +93,7 @@ import com.armanmaurya.internetradio.ui.tv.navigation.AppNavHost
 fun HomeScreen(
     browseViewModel: BrowseViewModel = hiltViewModel(),
     recentViewModel: RecentViewModel = hiltViewModel(),
-    favoritesViewModel: FavoritesViewModel = hiltViewModel(),
-    addedViewModel: AddedViewModel = hiltViewModel(),
+    libraryViewModel: LibraryViewModel = hiltViewModel(),
     playerViewModel: PlayerViewModel = hiltViewModel(),
     homeViewModel: HomeViewModel = hiltViewModel()
 ) {
@@ -103,18 +102,15 @@ fun HomeScreen(
     val currentDestination = navBackStackEntry?.destination?.route ?: AppDestination.Browse.route
 
     val homeUiState by homeViewModel.uiState.collectAsStateWithLifecycle()
+
+    // Forward search query from HomeViewModel -> BrowseViewModel
+    LaunchedEffect(homeUiState.searchQuery) {
+        browseViewModel.onSearchQueryChange(homeUiState.searchQuery)
+    }
+
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Open)
     val coroutineScope = rememberCoroutineScope()
-    val focusManager = LocalFocusManager.current
     val contentFocusRequester = remember { FocusRequester() }
-
-    LaunchedEffect(Unit) {
-        try {
-            contentFocusRequester.requestFocus()
-        } catch (e: Exception) {
-            // Ignore focus error on init
-        }
-    }
     
     val playbackState by playerViewModel.playbackState.collectAsStateWithLifecycle()
     
@@ -127,7 +123,6 @@ fun HomeScreen(
             launchSingleTop = true
             restoreState = true
         }
-        coroutineScope.launch { drawerState.setValue(DrawerValue.Closed) }
     }
 
     TvInternetRadioTheme {
@@ -149,19 +144,28 @@ fun HomeScreen(
                             .padding(12.dp)
                     ) {
                         if (playbackState.currentStation != null) {
+                            val miniplayerWidth by androidx.compose.animation.core.animateDpAsState(
+                                targetValue = if (drawerValue == DrawerValue.Open) 256.dp else 56.dp,
+                                label = "miniplayerWidth"
+                            )
                             Surface(
                                 onClick = { navigateToDrawerItem(AppDestination.Player.route) },
                                 scale = ClickableSurfaceDefaults.scale(focusedScale = 1f),
                                 colors = ClickableSurfaceDefaults.colors(
                                     containerColor = Color.Transparent,
                                     focusedContainerColor = MaterialTheme.colorScheme.inverseSurface,
-                                    pressedContainerColor = MaterialTheme.colorScheme.inverseSurface
+                                    focusedContentColor = MaterialTheme.colorScheme.inverseOnSurface,
+                                    pressedContainerColor = MaterialTheme.colorScheme.inverseSurface,
+                                    pressedContentColor = MaterialTheme.colorScheme.inverseOnSurface
                                 ),
                                 shape = ClickableSurfaceDefaults.shape(shape = RoundedCornerShape(8.dp)),
-                                modifier = Modifier.padding(bottom = 16.dp)
+                                modifier = Modifier
+                                    .padding(bottom = 16.dp)
+                                    .width(miniplayerWidth)
                             ) {
                                 Row(
-                                    verticalAlignment = Alignment.CenterVertically
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.padding(4.dp)
                                 ) {
                                     val fallbackPainter = painterResource(id = R.drawable.ic_launcher_foreground)
                                     AsyncImage(
@@ -170,33 +174,41 @@ fun HomeScreen(
                                         placeholder = fallbackPainter,
                                         error = fallbackPainter,
                                         fallback = fallbackPainter,
-                                        modifier = Modifier.size(48.dp).clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.surfaceVariant),
+                                        modifier = Modifier
+                                            .size(48.dp)
+                                            .clip(RoundedCornerShape(8.dp))
+                                            .background(MaterialTheme.colorScheme.surfaceVariant),
                                         contentScale = ContentScale.Crop
                                     )
-                                    
-                                    if (drawerValue == DrawerValue.Open) {
-                                        Spacer(modifier = Modifier.width(16.dp))
-                                        Column {
-                                            Text(
-                                                text = playbackState.currentStation!!.name,
-                                                maxLines = 1,
-                                                modifier = Modifier.basicMarquee(),
-                                                style = MaterialTheme.typography.bodyLarge
-                                            )
-                                            if (!playbackState.currentTrack.isNullOrEmpty()) {
+
+                                    androidx.compose.animation.AnimatedVisibility(
+                                        visible = drawerValue == DrawerValue.Open
+                                    ) {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Spacer(modifier = Modifier.width(12.dp))
+                                            Column(modifier = Modifier.weight(1f)) {
                                                 Text(
-                                                    text = playbackState.currentTrack!!,
+                                                    text = playbackState.currentStation!!.name,
                                                     maxLines = 1,
                                                     modifier = Modifier.basicMarquee(),
-                                                    style = MaterialTheme.typography.bodyMedium,
-                                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                                                    style = MaterialTheme.typography.bodyLarge
                                                 )
+                                                if (!playbackState.currentTrack.isNullOrEmpty()) {
+                                                    Text(
+                                                        text = playbackState.currentTrack!!,
+                                                        maxLines = 1,
+                                                        modifier = Modifier.basicMarquee(),
+                                                        style = MaterialTheme.typography.bodyMedium,
+                                                        color = androidx.tv.material3.LocalContentColor.current.copy(alpha = 0.7f)
+                                                    )
+                                                }
                                             }
                                         }
                                     }
                                 }
                             }
                         }
+
 
                         var isSearchEditing by remember { mutableStateOf(false) }
                         val searchFocusRequester = remember { FocusRequester() }
@@ -264,6 +276,7 @@ fun HomeScreen(
                                 colors = ClickableSurfaceDefaults.colors(
                                     containerColor = Color.Transparent,
                                     focusedContainerColor = MaterialTheme.colorScheme.inverseSurface,
+                                    focusedContentColor = MaterialTheme.colorScheme.inverseOnSurface,
                                 ),
                                 border = ClickableSurfaceDefaults.border(
                                     border = Border(
@@ -284,14 +297,12 @@ fun HomeScreen(
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Search,
-                                        contentDescription = "Search",
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                        contentDescription = "Search"
                                     )
                                     if (drawerValue == DrawerValue.Open) {
                                         Spacer(modifier = Modifier.width(12.dp))
                                         Text(
-                                            text = "Search",
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            text = if (homeUiState.searchQuery.isNotEmpty()) homeUiState.searchQuery else "Search",
                                             maxLines = 1,
                                             softWrap = false
                                         )
@@ -303,105 +314,121 @@ fun HomeScreen(
                         if (drawerValue == DrawerValue.Open) {
                             Row(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(bottom = 16.dp)
                             ) {
-                                IconButton(
+                                Surface(
+                                    selected = currentDestination == AppDestination.Tags.route,
                                     onClick = { navigateToDrawerItem(AppDestination.Tags.route) },
-                                    modifier = Modifier.weight(1f).height(56.dp).background(color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), shape = RoundedCornerShape(8.dp)),
-                                    scale = IconButtonDefaults.scale(focusedScale = 1f),
-                                    shape = IconButtonDefaults.shape(shape = RoundedCornerShape(8.dp))
+                                    modifier = Modifier.weight(1f).height(56.dp),
+                                    scale = SelectableSurfaceDefaults.scale(focusedScale = 1f),
+                                    shape = SelectableSurfaceDefaults.shape(shape = RoundedCornerShape(8.dp)),
+                                    colors = SelectableSurfaceDefaults.colors(
+                                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                                        selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                        focusedSelectedContainerColor = MaterialTheme.colorScheme.inverseSurface
+                                    )
                                 ) {
-                                    Box {
-                                        Icon(
-                                            Icons.Default.Label, 
-                                            contentDescription = "Tags",
-                                            tint = if (homeUiState.selectedTags.isNotEmpty()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                        if (homeUiState.selectedTags.isNotEmpty()) {
-                                            Text(
-                                                text = homeUiState.selectedTags.size.toString(),
-                                                style = MaterialTheme.typography.labelSmall.copy(
-                                                    fontSize = 10.sp,
-                                                    fontWeight = FontWeight.Bold
-                                                ),
-                                                color = MaterialTheme.colorScheme.primary,
-                                                modifier = Modifier
-                                                    .align(Alignment.TopEnd)
-                                                    .offset(x = 6.dp, y = (-4).dp)
+                                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                        Box(contentAlignment = Alignment.Center) {
+                                            Icon(
+                                                Icons.Default.Sell,
+                                                contentDescription = "Tags"
                                             )
+                                            if (homeUiState.selectedTags.isNotEmpty()) {
+                                                Text(
+                                                    text = homeUiState.selectedTags.size.toString(),
+                                                    style = MaterialTheme.typography.labelSmall.copy(
+                                                        fontSize = 10.sp,
+                                                        fontWeight = FontWeight.Bold
+                                                    ),
+                                                    color = androidx.tv.material3.LocalContentColor.current,
+                                                    modifier = Modifier
+                                                        .align(Alignment.TopEnd)
+                                                        .offset(x = 6.dp, y = (-4).dp)
+                                                )
+                                            }
                                         }
                                     }
                                 }
-                                IconButton(
+                                Surface(
+                                    selected = currentDestination == AppDestination.Language.route,
                                     onClick = { navigateToDrawerItem(AppDestination.Language.route) },
-                                    modifier = Modifier.weight(1f).height(56.dp).background(color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), shape = RoundedCornerShape(8.dp)),
-                                    scale = IconButtonDefaults.scale(focusedScale = 1f),
-                                    shape = IconButtonDefaults.shape(shape = RoundedCornerShape(8.dp))
+                                    modifier = Modifier.weight(1f).height(56.dp),
+                                    scale = SelectableSurfaceDefaults.scale(focusedScale = 1f),
+                                    shape = SelectableSurfaceDefaults.shape(shape = RoundedCornerShape(8.dp)),
+                                    colors = SelectableSurfaceDefaults.colors(
+                                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                                        selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                        focusedSelectedContainerColor = MaterialTheme.colorScheme.inverseSurface
+                                    )
                                 ) {
-                                    Box {
-                                        Icon(
-                                            Icons.Default.Language, 
-                                            contentDescription = "Language",
-                                            tint = if (!homeUiState.selectedLanguage.isNullOrBlank()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                        if (!homeUiState.selectedLanguage.isNullOrBlank()) {
-                                            Text(
-                                                text = homeUiState.selectedLanguage!!.take(2).uppercase(),
-                                                style = MaterialTheme.typography.labelSmall.copy(
-                                                    fontSize = 10.sp,
-                                                    fontWeight = FontWeight.Bold
-                                                ),
-                                                color = MaterialTheme.colorScheme.primary,
-                                                modifier = Modifier
-                                                    .align(Alignment.TopEnd)
-                                                    .offset(x = 6.dp, y = (-4).dp)
+                                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                        Box(contentAlignment = Alignment.Center) {
+                                            Icon(
+                                                Icons.Default.Translate,
+                                                contentDescription = "Language"
                                             )
+                                            if (!homeUiState.selectedLanguage.isNullOrBlank()) {
+                                                Text(
+                                                    text = homeUiState.selectedLanguage!!.take(2).uppercase(),
+                                                    style = MaterialTheme.typography.labelSmall.copy(
+                                                        fontSize = 10.sp,
+                                                        fontWeight = FontWeight.Bold
+                                                    ),
+                                                    color = androidx.tv.material3.LocalContentColor.current,
+                                                    modifier = Modifier
+                                                        .align(Alignment.TopEnd)
+                                                        .offset(x = 6.dp, y = (-4).dp)
+                                                )
+                                            }
                                         }
                                     }
                                 }
-                                IconButton(
+                                Surface(
+                                    selected = currentDestination == AppDestination.Country.route,
                                     onClick = { navigateToDrawerItem(AppDestination.Country.route) },
                                     modifier = Modifier
                                         .weight(1f)
                                         .height(56.dp)
-                                        .background(color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), shape = RoundedCornerShape(8.dp))
-                                        .onKeyEvent { event ->
-                                            if (event.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_DPAD_RIGHT && event.nativeKeyEvent.action == KeyEvent.ACTION_DOWN) {
-                                                try { contentFocusRequester.requestFocus() } catch(e: Exception) {}
-                                                coroutineScope.launch { drawerState.setValue(DrawerValue.Closed) }
-                                                true
-                                            } else {
-                                                false
-                                            }
-                                        },
-                                    scale = IconButtonDefaults.scale(focusedScale = 1f),
-                                    shape = IconButtonDefaults.shape(shape = RoundedCornerShape(8.dp))
+                                        .focusProperties { right = contentFocusRequester },
+                                    scale = SelectableSurfaceDefaults.scale(focusedScale = 1f),
+                                    shape = SelectableSurfaceDefaults.shape(shape = RoundedCornerShape(8.dp)),
+                                    colors = SelectableSurfaceDefaults.colors(
+                                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                                        selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                        focusedSelectedContainerColor = MaterialTheme.colorScheme.inverseSurface
+                                    )
                                 ) {
-                                    Box {
-                                        Icon(
-                                            Icons.Default.Public, 
-                                            contentDescription = "Country",
-                                            tint = if (!homeUiState.selectedCountryCode.isNullOrBlank()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                        if (!homeUiState.selectedCountryCode.isNullOrBlank()) {
-                                            Text(
-                                                text = homeUiState.selectedCountryCode!!,
-                                                style = MaterialTheme.typography.labelSmall.copy(
-                                                    fontSize = 10.sp,
-                                                    fontWeight = FontWeight.Bold
-                                                ),
-                                                color = MaterialTheme.colorScheme.primary,
-                                                modifier = Modifier
-                                                    .align(Alignment.TopEnd)
-                                                    .offset(x = 6.dp, y = (-4).dp)
+                                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                        Box(contentAlignment = Alignment.Center) {
+                                            Icon(
+                                                Icons.Default.Public,
+                                                contentDescription = "Country"
                                             )
+                                            if (!homeUiState.selectedCountryCode.isNullOrBlank()) {
+                                                Text(
+                                                    text = homeUiState.selectedCountryCode!!,
+                                                    style = MaterialTheme.typography.labelSmall.copy(
+                                                        fontSize = 10.sp,
+                                                        fontWeight = FontWeight.Bold
+                                                    ),
+                                                    color = androidx.tv.material3.LocalContentColor.current,
+                                                    modifier = Modifier
+                                                        .align(Alignment.TopEnd)
+                                                        .offset(x = 6.dp, y = (-4).dp)
+                                                )
+                                            }
                                         }
                                     }
                                 }
                             }
                         } else {
                             NavigationDrawerItem(
-                                selected = false,
+                                selected = currentDestination == AppDestination.Tags.route || 
+                                           currentDestination == AppDestination.Language.route || 
+                                           currentDestination == AppDestination.Country.route,
                                 onClick = { coroutineScope.launch { drawerState.setValue(DrawerValue.Open) } },
                                 shape = NavigationDrawerItemDefaults.shape(shape = RoundedCornerShape(8.dp)),
                                 leadingContent = {
@@ -445,26 +472,17 @@ fun HomeScreen(
                         }
 
                         NavigationDrawerItem(
-                            selected = currentDestination == AppDestination.Favorites.route,
-                            onClick = { navigateToDrawerItem(AppDestination.Favorites.route) },
+                            selected = currentDestination == AppDestination.Library.route,
+                            onClick = { navigateToDrawerItem(AppDestination.Library.route) },
                             shape = NavigationDrawerItemDefaults.shape(shape = RoundedCornerShape(8.dp)),
                             leadingContent = {
-                                Icon(imageVector = Icons.Default.Favorite, contentDescription = "Favorites")
+                                Icon(imageVector = Icons.Default.LibraryMusic, contentDescription = "Library")
                             }
                         ) {
-                            Text("Favorites")
+                            Text("Library")
                         }
 
-                        NavigationDrawerItem(
-                            selected = currentDestination == AppDestination.Added.route,
-                            onClick = { navigateToDrawerItem(AppDestination.Added.route) },
-                            shape = NavigationDrawerItemDefaults.shape(shape = RoundedCornerShape(8.dp)),
-                            leadingContent = {
-                                Icon(imageVector = Icons.Default.Add, contentDescription = "Added")
-                            }
-                        ) {
-                            Text("Added")
-                        }
+
 
                         Spacer(modifier = Modifier.weight(1f))
 
@@ -488,17 +506,13 @@ fun HomeScreen(
                         .fillMaxSize()
                         .padding(start = contentPadding)
                         .focusRequester(contentFocusRequester)
-                        .focusProperties {
-                            // If focus enters the Box, let the children handle it
-                            canFocus = false
-                        }
+                        .focusRestorer()
                 ) {
                     AppNavHost(
                         navController = navController,
                         browseViewModel = browseViewModel,
                         recentViewModel = recentViewModel,
-                        favoritesViewModel = favoritesViewModel,
-                        addedViewModel = addedViewModel,
+                        libraryViewModel = libraryViewModel,
                         playerViewModel = playerViewModel,
                         homeViewModel = homeViewModel
                     )

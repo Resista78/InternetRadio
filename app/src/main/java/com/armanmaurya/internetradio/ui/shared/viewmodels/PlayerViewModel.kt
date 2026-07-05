@@ -3,7 +3,7 @@ package com.armanmaurya.internetradio.ui.shared.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.armanmaurya.internetradio.data.model.RadioStation
-import com.armanmaurya.internetradio.data.repository.FavoriteRepository
+import com.armanmaurya.internetradio.data.repository.LibraryRepository
 import com.armanmaurya.internetradio.data.repository.RecentRepository
 import com.armanmaurya.internetradio.data.repository.StationRepository
 import com.armanmaurya.internetradio.data.repository.TrackHistoryRepository
@@ -25,7 +25,7 @@ import javax.inject.Inject
 @HiltViewModel
 class PlayerViewModel @Inject constructor(
     private val playerController: PlayerController,
-    private val favoriteRepository: FavoriteRepository,
+    private val libraryRepository: LibraryRepository,
     private val recentRepository: RecentRepository,
     private val stationRepository: StationRepository,
     private val trackHistoryRepository: TrackHistoryRepository
@@ -64,8 +64,8 @@ class PlayerViewModel @Inject constructor(
 
                     if (hasChanged) {
                         // Update Favorite if it exists
-                        if (favoriteRepository.isFavoriteDirect(currentStation.stationUuid)) {
-                            favoriteRepository.addFavorite(freshStation)
+                        if (libraryRepository.isStationInLibraryDirect(currentStation.stationUuid)) {
+                            libraryRepository.addStationToLibrary(freshStation)
                         }
 
                         // Update Recent
@@ -84,7 +84,7 @@ class PlayerViewModel @Inject constructor(
         .distinctUntilChanged()
         .flatMapLatest { uuid ->
             if (uuid == null) flowOf(false)
-            else favoriteRepository.isFavorite(uuid)
+            else libraryRepository.isStationInLibrary(uuid)
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
@@ -102,9 +102,9 @@ class PlayerViewModel @Inject constructor(
         val station = playbackState.value.currentStation ?: return
         viewModelScope.launch {
             if (isFavorite.value) {
-                favoriteRepository.removeFavorite(station.stationUuid)
+                libraryRepository.removeStationFromLibrary(station.stationUuid)
             } else {
-                favoriteRepository.addFavorite(station)
+                libraryRepository.addStationToLibrary(station)
             }
         }
     }

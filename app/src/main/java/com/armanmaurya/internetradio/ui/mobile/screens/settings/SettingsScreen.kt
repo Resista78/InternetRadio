@@ -66,6 +66,7 @@ fun SettingsScreen(
     var themeExpanded by remember { mutableStateOf(false) }
     var languageExpanded by remember { mutableStateOf(false) }
     var showHistoryLimitDialog by remember { mutableStateOf(false) }
+    var defaultTabExpanded by remember { mutableStateOf(false) }
 
     Scaffold(
         modifier = Modifier.padding(bottom = contentPadding.calculateBottomPadding()),
@@ -95,7 +96,10 @@ fun SettingsScreen(
                 onSetLanguage = viewModel::setAppLanguage,
                 showHistoryLimitDialog = showHistoryLimitDialog,
                 onToggleHistoryLimitDialog = { showHistoryLimitDialog = !showHistoryLimitDialog },
-                onSetHistoryLimit = viewModel::setTrackHistoryLimit
+                onSetHistoryLimit = viewModel::setTrackHistoryLimit,
+                defaultTabExpanded = defaultTabExpanded,
+                onToggleDefaultTabExpanded = { defaultTabExpanded = !defaultTabExpanded },
+                onSetDefaultTab = viewModel::setDefaultTab
             )
             AboutSection(onAboutClick)
         }
@@ -179,7 +183,10 @@ private fun GeneralSection(
     onSetLanguage: (String) -> Unit,
     showHistoryLimitDialog: Boolean,
     onToggleHistoryLimitDialog: () -> Unit,
-    onSetHistoryLimit: (Int) -> Unit
+    onSetHistoryLimit: (Int) -> Unit,
+    defaultTabExpanded: Boolean,
+    onToggleDefaultTabExpanded: () -> Unit,
+    onSetDefaultTab: (Int) -> Unit
 ) {
     val currentLocales = AppCompatDelegate.getApplicationLocales()
     val activeLanguageCode = if (currentLocales.isEmpty) {
@@ -201,6 +208,23 @@ private fun GeneralSection(
                     label = name,
                     isSelected = activeLanguageCode == code,
                     onClick = { onSetLanguage(code) }
+                )
+            }
+        }
+
+        val tabs = listOf("Browse", "Recent", "Library")
+        ExpandableItem(
+            title = "Default Tab on Startup",
+            subtitle = tabs.getOrNull(uiState.defaultTab) ?: "Browse",
+            isExpanded = defaultTabExpanded,
+            onToggle = onToggleDefaultTabExpanded,
+            icon = Icons.Default.StarRate // or some other icon
+        ) {
+            tabs.forEachIndexed { index, name ->
+                OptionItem(
+                    label = name,
+                    isSelected = uiState.defaultTab == index,
+                    onClick = { onSetDefaultTab(index) }
                 )
             }
         }

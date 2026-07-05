@@ -62,7 +62,7 @@ fun BrowseContent(
     isPlaybackActive: Boolean = false
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val favoriteStationUuids by viewModel.favoriteStationUuids.collectAsStateWithLifecycle()
+    val libraryStationUuids by viewModel.libraryStationUuids.collectAsStateWithLifecycle()
     
     val gridState = rememberLazyGridState()
     
@@ -169,7 +169,7 @@ fun BrowseContent(
                                 .animateItem(),
                             isCurrentlyPlaying = playingStationUuid == station.stationUuid,
                             isPlaybackActive = isPlaybackActive,
-                            isFavorite = favoriteStationUuids.contains(station.stationUuid)
+                            isFavorite = libraryStationUuids.contains(station.stationUuid)
                         )
                     } else {
                         StationListCard(
@@ -180,7 +180,7 @@ fun BrowseContent(
                                 .animateItem(),
                             isCurrentlyPlaying = playingStationUuid == station.stationUuid,
                             isPlaybackActive = isPlaybackActive,
-                            isFavorite = favoriteStationUuids.contains(station.stationUuid)
+                            isFavorite = libraryStationUuids.contains(station.stationUuid)
                         )
                     }
                 }

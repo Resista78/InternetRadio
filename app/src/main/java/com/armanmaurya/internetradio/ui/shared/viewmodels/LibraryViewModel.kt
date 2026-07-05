@@ -3,8 +3,8 @@ package com.armanmaurya.internetradio.ui.shared.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.armanmaurya.internetradio.data.model.RadioStation
+import com.armanmaurya.internetradio.data.repository.LibraryRepository
 import com.armanmaurya.internetradio.data.repository.SettingsRepository
-import com.armanmaurya.internetradio.data.repository.UserStationRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -15,33 +15,34 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class AddedViewModel @Inject constructor(
-    private val repository: UserStationRepository,
+class LibraryViewModel @Inject constructor(
+    private val libraryRepository: LibraryRepository,
     private val settingsRepository: SettingsRepository
 ) : ViewModel() {
 
+    // Using useFilterOnFavorites and isGridViewFavorites for now, maybe we can rename these in Settings later
     val useFilter: StateFlow<Boolean> = settingsRepository.appPreferencesFlow
-        .map { it.useFilterOnAdded }
+        .map { it.useFilterOnFavorites }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     val isGridView: StateFlow<Boolean> = settingsRepository.appPreferencesFlow
-        .map { it.isGridViewAdded }
+        .map { it.isGridViewFavorites }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
-    val userStations: StateFlow<List<RadioStation>> = combine(
-        repository.getAllUserStations(),
+    val stations: StateFlow<List<RadioStation>> = combine(
+        libraryRepository.getAllStations(),
         settingsRepository.appPreferencesFlow
-    ) { stations, preferences ->
-        if (preferences.useFilterOnAdded) {
+    ) { stationsList, preferences ->
+        if (preferences.useFilterOnFavorites) {
             val hasCountryFilter = !preferences.selectedCountryCode.isNullOrBlank()
             val hasLanguageFilter = !preferences.selectedLanguage.isNullOrBlank()
             val hasTagFilter = preferences.selectedTags.isNotEmpty()
 
             // If no filter criteria are set at all, show everything
             if (!hasCountryFilter && !hasLanguageFilter && !hasTagFilter) {
-                stations
+                stationsList
             } else {
-                stations.filter { station ->
+                stationsList.filter { station ->
                     val countryMatch = !hasCountryFilter ||
                             station.countryCode == preferences.selectedCountryCode
                     val languageMatch = !hasLanguageFilter ||
@@ -53,7 +54,7 @@ class AddedViewModel @Inject constructor(
                 }
             }
         } else {
-            stations
+            stationsList
         }
     }.stateIn(
         scope = viewModelScope,
@@ -61,41 +62,64 @@ class AddedViewModel @Inject constructor(
         initialValue = emptyList()
     )
 
-    fun addStation(
-        name: String,
-        url: String,
-        favicon: String,
-        tags: List<String> = emptyList(),
-        country: String = "",
-        countryCode: String = "",
-        language: String = ""
-    ) {
-        viewModelScope.launch {
-            repository.addUserStation(
-                name = name,
-                url = url,
-                favicon = favicon,
-                tags = tags,
-                country = country,
-                countryCode = countryCode,
-                language = language
-            )
-        }
-    }
-
     fun toggleFilter() {
         viewModelScope.launch {
-            settingsRepository.setUseFilterOnAdded(!useFilter.value)
-        }
-    }
-
-    fun deleteStation(stationUuid: String) {
-        viewModelScope.launch {
-            repository.deleteUserStation(stationUuid)
+            settingsRepository.setUseFilterOnFavorites(!useFilter.value)
         }
     }
 
     fun onGridViewChange(isGrid: Boolean) {
-        viewModelScope.launch { settingsRepository.setGridViewAdded(isGrid) }
+        viewModelScope.launch { settingsRepository.setGridViewFavorites(isGrid) }
+    }
+
+    fun isStationInLibrary(stationUuid: String) =
+        libraryRepository.isStationInLibrary(stationUuid)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    fun addStationToLibrary(station: RadioStation) {
+        viewModelScope.launch {
+            libraryRepository.addStationToLibrary(station)
+        }
+    }
+
+    fun removeStation(stationUuid: String) {
+        viewModelScope.launch {
+            libraryRepository.removeStationFromLibrary(stationUuid)
+        }
+    }
+
+    fun updateStation(stationUuid: String, name: String, url: String, favicon: String, tags: List<String>) {
+        viewModelScope.launch {
+            libraryRepository.updateStation(
+                stationUuid = stationUuid,
+                name = name,
+                url = url,
+                favicon = favicon,
+                tags = tags
+            )
+        }
+    }
+
+    fun addStation(
+        name: String,
+        url: String,
+        favicon: String,
+        tags: String,
+        country: String,
+        state: String,
+        language: String
+    ) {
+        val tagList = tags.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+        viewModelScope.launch {
+            libraryRepository.addCustomStation(
+                name = name,
+                url = url,
+                favicon = favicon,
+                tags = tagList,
+                country = country,
+                countryCode = state,
+                language = language
+            )
+        }
     }
 }

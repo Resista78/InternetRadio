@@ -303,9 +303,9 @@ fun PlayerSheetContent(
 
                 IconButton(onClick = onToggleFavorite) {
                     Icon(
-                        imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                        imageVector = if (isFavorite) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
                         contentDescription = "Toggle Favorite",
-                        tint = if (isFavorite) Color.Red else LocalContentColor.current
+                        tint = if (isFavorite) MaterialTheme.colorScheme.primary else LocalContentColor.current
                     )
                 }
             }
@@ -394,10 +394,10 @@ fun PlayerSheetContent(
 
                         IconButton(onClick = onToggleFavorite) {
                             Icon(
-                                imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                                imageVector = if (isFavorite) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
                                 contentDescription = "Toggle Favorite",
                                 modifier = Modifier.size(32.dp),
-                                tint = if (isFavorite) Color.Red else LocalContentColor.current
+                                tint = if (isFavorite) MaterialTheme.colorScheme.primary else LocalContentColor.current
                             )
                         }
                     }
@@ -493,9 +493,9 @@ fun PlayerSheetContent(
 
                             IconButton(onClick = onToggleFavorite) {
                                 Icon(
-                                    imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                                    imageVector = if (isFavorite) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
                                     contentDescription = "Toggle Favorite",
-                                    tint = if (isFavorite) Color.Red else LocalContentColor.current
+                                    tint = if (isFavorite) MaterialTheme.colorScheme.primary else LocalContentColor.current
                                 )
                             }
                         }

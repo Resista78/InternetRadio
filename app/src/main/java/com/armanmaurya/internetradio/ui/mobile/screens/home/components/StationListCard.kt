@@ -7,14 +7,22 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.border
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,6 +41,7 @@ fun StationListCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     onDeleteClick: (() -> Unit)? = null,
+    onEditClick: (() -> Unit)? = null,
     isCurrentlyPlaying: Boolean = false,
     isPlaybackActive: Boolean = false,
     isFavorite: Boolean = false,
@@ -83,9 +92,9 @@ fun StationListCard(
 
                 if (isFavorite) {
                     Icon(
-                        imageVector = Icons.Default.Favorite,
+                        imageVector = Icons.Default.Bookmark,
                         contentDescription = "Favorite",
-                        tint = Color.Red,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier
                             .align(Alignment.TopEnd)
                             .padding(2.dp)
@@ -127,13 +136,45 @@ fun StationListCard(
                 )
             }
 
-            if (onDeleteClick != null) {
-                IconButton(onClick = onDeleteClick) {
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = "Delete Station",
-                        tint = MaterialTheme.colorScheme.error
-                    )
+            if (onEditClick != null || onDeleteClick != null) {
+                var showMenu by remember { mutableStateOf(false) }
+                Box {
+                    IconButton(onClick = { showMenu = true }) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = "More Options",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    DropdownMenu(
+                        expanded = showMenu,
+                        onDismissRequest = { showMenu = false }
+                    ) {
+                        if (onEditClick != null) {
+                            DropdownMenuItem(
+                                text = { Text("Edit Station") },
+                                onClick = {
+                                    showMenu = false
+                                    onEditClick()
+                                },
+                                leadingIcon = {
+                                    Icon(Icons.Default.Edit, contentDescription = null)
+                                }
+                            )
+                        }
+                        if (onDeleteClick != null) {
+                            DropdownMenuItem(
+                                text = { Text("Delete Station") },
+                                onClick = {
+                                    showMenu = false
+                                    onDeleteClick()
+                                },
+                                leadingIcon = {
+                                    Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error)
+                                }
+                            )
+                        }
+                    }
                 }
             }
         }

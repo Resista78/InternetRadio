@@ -9,28 +9,30 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.armanmaurya.internetradio.player.PlaybackSource
 import com.armanmaurya.internetradio.ui.mobile.screens.home.HomeViewModel
-import com.armanmaurya.internetradio.ui.shared.viewmodels.AddedViewModel
+
 import com.armanmaurya.internetradio.ui.shared.viewmodels.BrowseViewModel
-import com.armanmaurya.internetradio.ui.shared.viewmodels.FavoritesViewModel
+import com.armanmaurya.internetradio.ui.shared.viewmodels.LibraryViewModel
 import com.armanmaurya.internetradio.ui.shared.viewmodels.PlayerViewModel
 import com.armanmaurya.internetradio.ui.shared.viewmodels.RecentViewModel
-import com.armanmaurya.internetradio.ui.tv.screens.added.AddedScreen
+import com.armanmaurya.internetradio.ui.tv.screens.library.LibraryScreen
 import com.armanmaurya.internetradio.ui.tv.screens.browse.BrowseScreen
 import com.armanmaurya.internetradio.ui.tv.screens.countries.CountrySelectScreen
-import com.armanmaurya.internetradio.ui.tv.screens.favorites.FavoritesScreen
 import com.armanmaurya.internetradio.ui.tv.screens.languages.LanguageSelectScreen
 import com.armanmaurya.internetradio.ui.tv.screens.player.PlayerScreen
 import com.armanmaurya.internetradio.ui.tv.screens.recent.RecentScreen
+import com.armanmaurya.internetradio.ui.tv.screens.about.AboutScreen
 import com.armanmaurya.internetradio.ui.tv.screens.settings.SettingsScreen
 import com.armanmaurya.internetradio.ui.tv.screens.tags.TagSelectScreen
+import com.armanmaurya.internetradio.ui.tv.screens.edit.AddEditStationScreen
+import androidx.navigation.navArgument
+import androidx.navigation.NavType
 
 @Composable
 fun AppNavHost(
     navController: NavHostController,
     browseViewModel: BrowseViewModel,
     recentViewModel: RecentViewModel,
-    favoritesViewModel: FavoritesViewModel,
-    addedViewModel: AddedViewModel,
+    libraryViewModel: LibraryViewModel,
     playerViewModel: PlayerViewModel,
     homeViewModel: HomeViewModel,
     modifier: Modifier = Modifier
@@ -61,28 +63,31 @@ fun AppNavHost(
                 onStationClick = { stations, index, _ -> playerViewModel.play(stations, index, PlaybackSource.Recent) }
             )
         }
-        composable(AppDestination.Favorites.route) {
-            FavoritesScreen(
-                viewModel = favoritesViewModel,
+        composable(AppDestination.Library.route) {
+            LibraryScreen(
+                viewModel = libraryViewModel,
                 playingStationUuid = playingStationUuid,
                 isPlaybackActive = isPlaybackActive,
-                onStationClick = { stations, index, _ -> playerViewModel.play(stations, index, PlaybackSource.Favorites) }
-            )
-        }
-        composable(AppDestination.Added.route) {
-            AddedScreen(
-                viewModel = addedViewModel,
-                playingStationUuid = playingStationUuid,
-                isPlaybackActive = isPlaybackActive,
-                onStationClick = { stations, index, _ -> playerViewModel.play(stations, index, PlaybackSource.None) }
+                onStationClick = { stations, index, _ -> playerViewModel.play(stations, index, PlaybackSource.Library) },
+                onAddStation = { navController.navigate(AppDestination.AddEditStation.createRoute(null)) },
+                onEditStation = { uuid -> navController.navigate(AppDestination.AddEditStation.createRoute(uuid)) }
             )
         }
         composable(AppDestination.Settings.route) {
-            SettingsScreen()
+            SettingsScreen(
+                onAboutClick = { navController.navigate(AppDestination.About.route) }
+            )
+        }
+        composable(AppDestination.About.route) {
+            AboutScreen(
+                onBackClick = { navController.popBackStack() }
+            )
         }
         composable(AppDestination.Player.route) {
             PlayerScreen(
-                playerViewModel = playerViewModel
+                playerViewModel = playerViewModel,
+                libraryViewModel = libraryViewModel,
+                onEditStation = { uuid -> navController.navigate(AppDestination.AddEditStation.createRoute(uuid)) }
             )
         }
         composable(AppDestination.Tags.route) {
@@ -113,6 +118,21 @@ fun AppNavHost(
                     navController.popBackStack()
                 },
                 onBackClick = { navController.popBackStack() }
+            )
+        }
+        composable(
+            route = AppDestination.AddEditStation.route,
+            arguments = listOf(navArgument("stationUuid") { 
+                type = NavType.StringType 
+                nullable = true
+                defaultValue = null
+            })
+        ) { backStackEntry ->
+            val stationUuid = backStackEntry.arguments?.getString("stationUuid")
+            AddEditStationScreen(
+                stationUuid = stationUuid,
+                viewModel = libraryViewModel,
+                onNavigateBack = { navController.navigateUp() }
             )
         }
     }

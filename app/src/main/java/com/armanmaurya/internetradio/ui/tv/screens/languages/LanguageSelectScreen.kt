@@ -62,10 +62,7 @@ fun LanguageSelectScreen(
             
             val displayList = listOf(allLanguagesItem) + uiState.languages
 
-            val focusRequester = remember { FocusRequester() }
-            LaunchedEffect(Unit) {
-                try { focusRequester.requestFocus() } catch (e: Exception) {}
-            }
+
 
             LazyVerticalGrid(
                 columns = GridCells.Fixed(3),
@@ -87,7 +84,7 @@ fun LanguageSelectScreen(
                             pressedContainerColor = MaterialTheme.colorScheme.inverseSurface
                         ),
                         shape = ClickableSurfaceDefaults.shape(shape = RoundedCornerShape(8.dp)),
-                        modifier = Modifier.fillMaxWidth().then(if (index == 0) Modifier.focusRequester(focusRequester) else Modifier)
+                        modifier = Modifier.fillMaxWidth()
                     ) {
                         Row(
                             modifier = Modifier.padding(16.dp).fillMaxWidth(),

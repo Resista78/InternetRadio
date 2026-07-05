@@ -15,7 +15,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.tv.material3.Text
 import com.armanmaurya.internetradio.data.model.RadioStation
-import com.armanmaurya.internetradio.ui.tv.components.TvStationCard
+import com.armanmaurya.internetradio.ui.tv.components.StationCard
 import com.armanmaurya.internetradio.ui.shared.viewmodels.RecentViewModel
 
 @Composable
@@ -45,7 +45,7 @@ fun RecentScreen(
                     items = stations,
                     key = { _, station -> station.stationUuid }
                 ) { index, station ->
-                    TvStationCard(
+                    StationCard(
                         station = station,
                         onClick = { onStationClick(stations, index, "tv_recent") },
                         isCurrentlyPlaying = station.stationUuid == playingStationUuid,

@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,16 +29,18 @@ import com.armanmaurya.internetradio.data.model.RadioStation
 import com.armanmaurya.internetradio.ui.mobile.screens.home.components.PlayingVisualizer
 
 @Composable
-fun TvStationCard(
+fun StationCard(
     station: RadioStation,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     isCurrentlyPlaying: Boolean = false,
     isPlaybackActive: Boolean = false,
     isFavorite: Boolean = false,
+    onLongClick: (() -> Unit)? = null
 ) {
     Card(
         onClick = onClick,
+        onLongClick = onLongClick,
         modifier = modifier.aspectRatio(1f),
         shape = CardDefaults.shape(shape = RoundedCornerShape(12.dp))
     ) {
@@ -82,9 +84,9 @@ fun TvStationCard(
 
             if (isFavorite) {
                 Icon(
-                    imageVector = Icons.Default.Favorite,
-                    contentDescription = "Favorite",
-                    tint = Color.Red,
+                    imageVector = Icons.Default.Bookmark,
+                    contentDescription = "In Library",
+                    tint = Color.White,
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .padding(8.dp)

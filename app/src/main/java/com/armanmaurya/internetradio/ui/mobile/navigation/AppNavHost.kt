@@ -15,6 +15,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.armanmaurya.internetradio.ui.mobile.screens.home.HomeViewModel
 import com.armanmaurya.internetradio.ui.mobile.screens.settings.SettingsScreen
 import com.armanmaurya.internetradio.ui.mobile.screens.about.AboutScreen
+import com.armanmaurya.internetradio.ui.mobile.screens.edit.AddEditStationScreen
 import androidx.navigation.navArgument
 import androidx.navigation.NavType
 import androidx.compose.animation.core.tween
@@ -74,6 +75,7 @@ fun AppNavHost(
                     val currentTags = discoverViewModel.uiState.value.selectedTags
                     navController.navigate(AppDestination.TagSelect.createRoute(currentTags))
                 },
+                onEditStation = { stationUuid -> navController.navigate(AppDestination.AddEditStation.createRoute(stationUuid)) },
                 contentPadding = contentPadding
             )
         }
@@ -152,6 +154,21 @@ fun AppNavHost(
                 },
                 onBackClick = { navController.popBackStack() },
                 contentPadding = contentPadding
+            )
+        }
+        composable(
+            route = AppDestination.AddEditStation.route,
+            arguments = listOf(navArgument("stationUuid") { 
+                type = NavType.StringType 
+                nullable = true
+                defaultValue = null
+            })
+        ) { backStackEntry ->
+            val stationUuid = backStackEntry.arguments?.getString("stationUuid")
+            AddEditStationScreen(
+                stationUuid = stationUuid,
+                viewModel = hiltViewModel(),
+                onNavigateBack = { navController.navigateUp() }
             )
         }
     }

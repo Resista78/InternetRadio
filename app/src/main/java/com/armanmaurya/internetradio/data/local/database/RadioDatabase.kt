@@ -6,23 +6,22 @@ import androidx.room.DeleteTable
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.room.migration.AutoMigrationSpec
-import com.armanmaurya.internetradio.data.local.dao.FavoriteStationDao
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
+import com.armanmaurya.internetradio.data.local.dao.LibraryStationDao
 import com.armanmaurya.internetradio.data.local.dao.RecentStationDao
 import com.armanmaurya.internetradio.data.local.dao.TrackHistoryDao
-import com.armanmaurya.internetradio.data.local.dao.UserStationDao
-import com.armanmaurya.internetradio.data.local.entity.FavoriteStationEntity
+import com.armanmaurya.internetradio.data.local.entity.LibraryStationEntity
 import com.armanmaurya.internetradio.data.local.entity.RecentStationEntity
 import com.armanmaurya.internetradio.data.local.entity.TrackHistoryEntity
-import com.armanmaurya.internetradio.data.local.entity.UserStationEntity
 
 @Database(
     entities = [
-        FavoriteStationEntity::class,
+        LibraryStationEntity::class,
         RecentStationEntity::class,
-        UserStationEntity::class,
         TrackHistoryEntity::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2, spec = RadioDatabase.Migration1To2Spec::class),
@@ -37,8 +36,32 @@ abstract class RadioDatabase : RoomDatabase() {
     @DeleteTable(tableName = "tags")
     class Migration1To2Spec : AutoMigrationSpec
 
-    abstract val favoriteStationDao: FavoriteStationDao
+    abstract val libraryStationDao: LibraryStationDao
     abstract val recentStationDao: RecentStationDao
-    abstract val userStationDao: UserStationDao
     abstract val trackHistoryDao: TrackHistoryDao
+
+    companion object {
+        val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // Create the new table
+                database.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `library_stations` (`stationUuid` TEXT NOT NULL, `name` TEXT NOT NULL, `url` TEXT NOT NULL, `urlResolved` TEXT NOT NULL, `favicon` TEXT NOT NULL, `tags` TEXT NOT NULL, `country` TEXT NOT NULL, `countryCode` TEXT NOT NULL, `language` TEXT NOT NULL, `codec` TEXT NOT NULL, `bitrate` INTEGER NOT NULL, `isCustom` INTEGER NOT NULL, `addedAt` INTEGER NOT NULL, PRIMARY KEY(`stationUuid`))"
+                )
+                
+                // Copy data from favorite_stations
+                database.execSQL(
+                    "INSERT OR IGNORE INTO `library_stations` (`stationUuid`, `name`, `url`, `urlResolved`, `favicon`, `tags`, `country`, `countryCode`, `language`, `codec`, `bitrate`, `isCustom`, `addedAt`) SELECT `stationUuid`, `name`, `url`, `urlResolved`, `favicon`, `tags`, `country`, `countryCode`, `language`, `codec`, `bitrate`, 0, `addedAt` FROM `favorite_stations`"
+                )
+                
+                // Copy data from user_stations
+                database.execSQL(
+                    "INSERT OR IGNORE INTO `library_stations` (`stationUuid`, `name`, `url`, `urlResolved`, `favicon`, `tags`, `country`, `countryCode`, `language`, `codec`, `bitrate`, `isCustom`, `addedAt`) SELECT `stationUuid`, `name`, `url`, `urlResolved`, `favicon`, `tags`, `country`, `countryCode`, `language`, `codec`, `bitrate`, 1, `addedAt` FROM `user_stations`"
+                )
+                
+                // Drop the old tables
+                database.execSQL("DROP TABLE IF EXISTS `favorite_stations`")
+                database.execSQL("DROP TABLE IF EXISTS `user_stations`")
+            }
+        }
+    }
 }

@@ -3,7 +3,7 @@ package com.armanmaurya.internetradio.ui.shared.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.armanmaurya.internetradio.data.model.RadioStation
-import com.armanmaurya.internetradio.data.repository.FavoriteRepository
+import com.armanmaurya.internetradio.data.repository.LibraryRepository
 import com.armanmaurya.internetradio.data.repository.RecentRepository
 import com.armanmaurya.internetradio.data.repository.SettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,7 +19,7 @@ import javax.inject.Inject
 class RecentViewModel @Inject constructor(
     private val recentRepository: RecentRepository,
     private val settingsRepository: SettingsRepository,
-    private val favoriteRepository: FavoriteRepository
+    private val libraryRepository: LibraryRepository
 ) : ViewModel() {
 
     val useFilter: StateFlow<Boolean> = settingsRepository.appPreferencesFlow
@@ -30,8 +30,8 @@ class RecentViewModel @Inject constructor(
         .map { it.isGridViewRecent }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
-    val favoriteStationUuids: StateFlow<Set<String>> = favoriteRepository.getAllFavorites()
-        .map { favorites -> favorites.map { it.stationUuid }.toSet() }
+    val libraryStationUuids: StateFlow<Set<String>> = libraryRepository.getAllStations()
+        .map { stations -> stations.map { it.stationUuid }.toSet() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
 
     val recentStations: StateFlow<List<RadioStation>> = combine(

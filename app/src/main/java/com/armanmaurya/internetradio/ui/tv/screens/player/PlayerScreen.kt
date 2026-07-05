@@ -4,6 +4,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -51,19 +52,38 @@ import androidx.tv.material3.ListItemDefaults
 import android.text.format.DateUtils
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import com.armanmaurya.internetradio.ui.shared.viewmodels.PlayerViewModel
+import com.armanmaurya.internetradio.ui.shared.viewmodels.LibraryViewModel
+import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.BookmarkBorder
+import androidx.compose.material.icons.filled.Edit
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 fun PlayerScreen(
-    playerViewModel: PlayerViewModel
+    playerViewModel: PlayerViewModel,
+    libraryViewModel: LibraryViewModel,
+    onEditStation: (String) -> Unit
 ) {
     val playbackState by playerViewModel.playbackState.collectAsStateWithLifecycle()
     val station = playbackState.currentStation
+    val isInLibraryFlow = remember(station?.stationUuid) {
+        station?.let { libraryViewModel.isStationInLibrary(it.stationUuid) }
+            ?: kotlinx.coroutines.flow.MutableStateFlow(false)
+    }
+    val isInLibrary by isInLibraryFlow.collectAsStateWithLifecycle()
     val trackHistory by playerViewModel.trackHistory.collectAsStateWithLifecycle()
     var isHistoryOpen by remember { mutableStateOf(false) }
     var sidebarHadFocus by remember { mutableStateOf(false) }
     val sidebarFocusRequester = remember { FocusRequester() }
     val recentTracksButtonFocusRequester = remember { FocusRequester() }
+
+    // Optimistic play state: flips to true immediately on click so the
+    // icon shows Pause before the media3 callback fires.
+    var isPlayingOptimistic by remember { mutableStateOf(playbackState.isPlaying) }
+    LaunchedEffect(playbackState.isPlaying, playbackState.isLoading) {
+        isPlayingOptimistic = playbackState.isPlaying || playbackState.isLoading
+    }
 
     LaunchedEffect(isHistoryOpen) {
         if (isHistoryOpen) {
@@ -145,7 +165,15 @@ fun PlayerScreen(
                         modifier = Modifier.basicMarquee()
                     )
                     
-                    if (!playbackState.currentTrack.isNullOrEmpty()) {
+                    if (playbackState.isLoading) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = "Buffering…",
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                            maxLines = 1
+                        )
+                    } else if (!playbackState.currentTrack.isNullOrEmpty()) {
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(
                             text = playbackState.currentTrack!!,
@@ -162,8 +190,12 @@ fun PlayerScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Button(
-                            onClick = { playerViewModel.togglePlayPause() },
+                            onClick = {
+                                isPlayingOptimistic = true
+                                playerViewModel.togglePlayPause()
+                            },
                             modifier = Modifier.focusRequester(playButtonFocusRequester),
+                            scale = ButtonDefaults.scale(focusedScale = 1f),
                             colors = ButtonDefaults.colors(
                                 containerColor = Color.White,
                                 contentColor = Color.Black,
@@ -173,8 +205,8 @@ fun PlayerScreen(
                             shape = ButtonDefaults.shape(shape = RoundedCornerShape(50))
                         ) {
                             Icon(
-                                imageVector = if (playbackState.isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                                contentDescription = if (playbackState.isPlaying) "Pause" else "Play",
+                                imageVector = if (isPlayingOptimistic) Icons.Default.Pause else Icons.Default.PlayArrow,
+                                contentDescription = if (isPlayingOptimistic) "Pause" else "Play",
                                 modifier = Modifier.size(32.dp).padding(4.dp)
                             )
                         }
@@ -182,6 +214,7 @@ fun PlayerScreen(
                         Button(
                             onClick = { isHistoryOpen = !isHistoryOpen },
                             modifier = Modifier.focusRequester(recentTracksButtonFocusRequester),
+                            scale = ButtonDefaults.scale(focusedScale = 1f),
                             colors = ButtonDefaults.colors(
                                 containerColor = Color.Black.copy(alpha = 0.5f),
                                 contentColor = Color.White,
@@ -195,6 +228,50 @@ fun PlayerScreen(
                                 text = "Recent Tracks",
                                 fontWeight = FontWeight.Medium
                             )
+                        }
+
+                        Button(
+                            onClick = {
+                                if (isInLibrary) {
+                                    libraryViewModel.removeStation(station.stationUuid)
+                                } else {
+                                    libraryViewModel.addStationToLibrary(station)
+                                }
+                            },
+                            scale = ButtonDefaults.scale(focusedScale = 1f),
+                            colors = ButtonDefaults.colors(
+                                containerColor = Color.Black.copy(alpha = 0.5f),
+                                contentColor = Color.White,
+                                focusedContainerColor = Color.White.copy(alpha = 0.8f),
+                                focusedContentColor = Color.Black
+                            ),
+                            shape = ButtonDefaults.shape(shape = RoundedCornerShape(50))
+                        ) {
+                            Icon(
+                                imageVector = if (isInLibrary) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
+                                contentDescription = if (isInLibrary) "Remove from Library" else "Add to Library",
+                                modifier = Modifier.size(28.dp).padding(2.dp)
+                            )
+                        }
+
+                        if (isInLibrary && station != null) {
+                            Button(
+                                onClick = { onEditStation(station.stationUuid) },
+                                scale = ButtonDefaults.scale(focusedScale = 1f),
+                                colors = ButtonDefaults.colors(
+                                    containerColor = Color.Black.copy(alpha = 0.5f),
+                                    contentColor = Color.White,
+                                    focusedContainerColor = Color.White.copy(alpha = 0.8f),
+                                    focusedContentColor = Color.Black
+                                ),
+                                shape = ButtonDefaults.shape(shape = RoundedCornerShape(50))
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Edit,
+                                    contentDescription = "Edit Station",
+                                    modifier = Modifier.size(28.dp).padding(2.dp)
+                                )
+                            }
                         }
                     }
                 }

@@ -1,4 +1,4 @@
-package com.armanmaurya.internetradio.ui.mobile.screens.home.tabs.favorites
+package com.armanmaurya.internetradio.ui.mobile.screens.home.tabs.library
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -26,19 +26,20 @@ import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.ViewList
 import androidx.compose.ui.res.stringResource
 import com.armanmaurya.internetradio.R
-import com.armanmaurya.internetradio.ui.shared.viewmodels.FavoritesViewModel
+import com.armanmaurya.internetradio.ui.shared.viewmodels.LibraryViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FavoritesContent(
+fun LibraryContent(
     onStationClick: (List<RadioStation>, Int, PlaybackSource) -> Unit,
+    onEditStation: (String) -> Unit,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp),
-    viewModel: FavoritesViewModel = hiltViewModel(),
+    viewModel: LibraryViewModel = hiltViewModel(),
     playingStationUuid: String? = null,
     isPlaybackActive: Boolean = false
 ) {
-    val favorites by viewModel.favorites.collectAsStateWithLifecycle()
+    val stations by viewModel.stations.collectAsStateWithLifecycle()
     val useFilter by viewModel.useFilter.collectAsStateWithLifecycle()
     val isGridView by viewModel.isGridView.collectAsStateWithLifecycle()
 
@@ -104,7 +105,7 @@ fun FavoritesContent(
             }
         }
 
-        if (favorites.isEmpty()) {
+        if (stations.isEmpty()) {
             item(span = { GridItemSpan(maxLineSpan) }) {
                 Box(
                     modifier = Modifier
@@ -114,9 +115,9 @@ fun FavoritesContent(
                 ) {
                     Text(
                         text = if (useFilter) 
-                            stringResource(R.string.no_favorite_stations_filtered) 
+                            "No library stations found with filter" 
                         else 
-                            stringResource(R.string.no_favorite_stations_yet),
+                            "No library stations yet",
                         style = MaterialTheme.typography.bodyLarge,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.padding(32.dp),
@@ -126,13 +127,15 @@ fun FavoritesContent(
             }
         } else {
             itemsIndexed(
-                items = favorites,
+                items = stations,
                 key = { _, it -> it.stationUuid }
             ) { index, station ->
                 if (isGridView) {
                     StationCard(
                         station = station,
-                        onClick = { onStationClick(favorites, index, PlaybackSource.Favorites) },
+                        onClick = { onStationClick(stations, index, PlaybackSource.Library) },
+                        onDeleteClick = { viewModel.removeStation(station.stationUuid) },
+                        onEditClick = { onEditStation(station.stationUuid) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .animateItem(),
@@ -142,7 +145,9 @@ fun FavoritesContent(
                 } else {
                     StationListCard(
                         station = station,
-                        onClick = { onStationClick(favorites, index, PlaybackSource.Favorites) },
+                        onClick = { onStationClick(stations, index, PlaybackSource.Library) },
+                        onDeleteClick = { viewModel.removeStation(station.stationUuid) },
+                        onEditClick = { onEditStation(station.stationUuid) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .animateItem(),

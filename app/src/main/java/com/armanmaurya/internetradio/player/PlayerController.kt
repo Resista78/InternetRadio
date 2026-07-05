@@ -208,7 +208,7 @@ class PlayerController @Inject constructor(
         currentPlaylist = stations
         val station = stations[startIndex]
 
-        if (activeStation?.stationUuid == station.stationUuid && player.mediaItemCount == stations.size) {
+        if (activeStation?.stationUuid == station.stationUuid) {
             if (player.playbackState == Player.STATE_IDLE) {
                 player.prepare()
             }
@@ -243,7 +243,8 @@ class PlayerController @Inject constructor(
 
     fun togglePlayPause() {
         val player = controller ?: return
-        if (player.isPlaying) {
+        val isBuffering = player.playbackState == Player.STATE_BUFFERING && player.playWhenReady
+        if (player.isPlaying || isBuffering) {
             player.pause()
         } else {
             if (player.playbackState == Player.STATE_IDLE) {
@@ -309,7 +310,7 @@ sealed class PlaybackSource {
         val reverse: Boolean
     ) : PlaybackSource()
     
-    object Favorites : PlaybackSource()
+    object Library : PlaybackSource()
     object Recent : PlaybackSource()
     object None : PlaybackSource()
 }

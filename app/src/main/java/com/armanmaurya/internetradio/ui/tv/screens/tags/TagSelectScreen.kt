@@ -56,14 +56,10 @@ fun TagSelectScreen(
                 text = "Select Tags",
                 style = MaterialTheme.typography.headlineMedium
             )
-            val focusRequester = remember { FocusRequester() }
-            LaunchedEffect(Unit) {
-                try { focusRequester.requestFocus() } catch (e: Exception) {}
-            }
+
             
             Button(
-                onClick = { onTagsSelected(uiState.selectedTags) },
-                modifier = Modifier.focusRequester(focusRequester)
+                onClick = { onTagsSelected(uiState.selectedTags) }
             ) {
                 Text("Apply Filters")
             }

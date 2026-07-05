@@ -27,7 +27,7 @@ import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.LocalRippleConfiguration
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.ScrollableTabRow
+import androidx.compose.material3.TabRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
@@ -56,12 +56,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.armanmaurya.internetradio.R
 import com.armanmaurya.internetradio.ui.mobile.screens.home.components.RadioSearchBar
 import com.armanmaurya.internetradio.ui.shared.viewmodels.PlayerViewModel
-import com.armanmaurya.internetradio.ui.mobile.screens.home.tabs.added.AddStationBottomSheet
-import com.armanmaurya.internetradio.ui.mobile.screens.home.tabs.added.AddedContent
-import com.armanmaurya.internetradio.ui.shared.viewmodels.AddedViewModel
+import com.armanmaurya.internetradio.ui.mobile.screens.home.tabs.library.LibraryContent
+import com.armanmaurya.internetradio.ui.shared.viewmodels.LibraryViewModel
 import com.armanmaurya.internetradio.ui.mobile.screens.home.tabs.browse.BrowseContent
 import com.armanmaurya.internetradio.ui.shared.viewmodels.BrowseViewModel
-import com.armanmaurya.internetradio.ui.mobile.screens.home.tabs.favorites.FavoritesContent
 import com.armanmaurya.internetradio.ui.mobile.screens.home.tabs.recent.RecentContent
 import kotlinx.coroutines.launch
 import kotlin.math.absoluteValue
@@ -73,12 +71,13 @@ fun HomeScreen(
     onCountryClick: () -> Unit,
     onLanguageClick: () -> Unit,
     onTagClick: () -> Unit,
+    onEditStation: (String?) -> Unit,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp),
     viewModel: HomeViewModel = hiltViewModel(),
     browseViewModel: BrowseViewModel = hiltViewModel(),
     playerViewModel: PlayerViewModel = hiltViewModel(),
-    addedViewModel: AddedViewModel = hiltViewModel(),
+    libraryViewModel: LibraryViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val browseUiState by browseViewModel.uiState.collectAsStateWithLifecycle()
@@ -86,13 +85,19 @@ fun HomeScreen(
     val playingStationUuid = playbackState.currentStation?.stationUuid
     val isPlaybackActive = playbackState.isPlaying
 
+    if (!uiState.isPreferencesLoaded) {
+        return // Wait for preferences to load before rendering
+    }
+
     val tabs = listOf(
         stringResource(R.string.tab_browse),
         stringResource(R.string.tab_recent),
-        stringResource(R.string.tab_favourites),
-        stringResource(R.string.tab_added)
+        "Library"
     )
-    val pagerState = rememberPagerState(pageCount = { tabs.size })
+    val pagerState = rememberPagerState(
+        initialPage = uiState.selectedTab,
+        pageCount = { tabs.size }
+    )
     val coroutineScope = rememberCoroutineScope()
 
     val density = LocalDensity.current
@@ -102,7 +107,6 @@ fun HomeScreen(
         }
     }
 
-    var showAddBottomSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
     var isSearchExpanded by remember { mutableStateOf(false) }
 
@@ -160,9 +164,9 @@ fun HomeScreen(
             }
         },
         floatingActionButton = {
-            if (pagerState.currentPage == 3) {
+            if (pagerState.currentPage == 2) {
                 FloatingActionButton(
-                    onClick = { showAddBottomSheet = true },
+                    onClick = { onEditStation(null) },
                     modifier = Modifier.padding(bottom = contentPadding.calculateBottomPadding())
                 ) {
                     Icon(
@@ -174,31 +178,15 @@ fun HomeScreen(
         },
         modifier = modifier.fillMaxSize(),
     ) { innerPadding ->
-        if (showAddBottomSheet) {
-            AddStationBottomSheet(
-                onDismiss = { showAddBottomSheet = false },
-                onConfirm = { name, url, favicon, tags, country, language ->
-                    addedViewModel.addStation(name, url, favicon, tags, country, "", language)
-                    coroutineScope.launch {
-                        sheetState.hide()
-                    }.invokeOnCompletion {
-                        if (!sheetState.isVisible) showAddBottomSheet = false
-                    }
-                },
-                sheetState = sheetState
-            )
-        }
-
         // Tabs
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            ScrollableTabRow(
+            TabRow(
                 selectedTabIndex = pagerState.currentPage,
                 modifier = Modifier.padding(horizontal = 4.dp),
-                edgePadding = 24.dp,
                 indicator = { tabPositions ->
                     if (pagerState.currentPage < tabPositions.size) {
                         val pagerPage = pagerState.currentPage
@@ -296,16 +284,10 @@ fun HomeScreen(
                             playingStationUuid = playingStationUuid,
                             isPlaybackActive = isPlaybackActive
                         )
-                        2 -> FavoritesContent(
+                        2 -> LibraryContent(
                             onStationClick = { stations, index, source -> playerViewModel.play(stations, index, source) },
+                            onEditStation = { stationUuid -> onEditStation(stationUuid) },
                             contentPadding = contentPadding,
-                            playingStationUuid = playingStationUuid,
-                            isPlaybackActive = isPlaybackActive
-                        )
-                        3 -> AddedContent(
-                            onStationClick = { stations, index, source -> playerViewModel.play(stations, index, source) },
-                            contentPadding = contentPadding,
-                            viewModel = addedViewModel,
                             playingStationUuid = playingStationUuid,
                             isPlaybackActive = isPlaybackActive
                         )

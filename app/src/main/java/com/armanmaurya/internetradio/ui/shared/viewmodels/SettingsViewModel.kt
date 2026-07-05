@@ -61,4 +61,10 @@ class SettingsViewModel @Inject constructor(
             settingsRepository.setTrackHistoryLimit(limit)
         }
     }
+
+    fun setDefaultTab(tabIndex: Int) {
+        viewModelScope.launch {
+            settingsRepository.setDefaultTab(tabIndex)
+        }
+    }
 }

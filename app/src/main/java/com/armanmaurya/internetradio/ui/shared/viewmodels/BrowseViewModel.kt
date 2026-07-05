@@ -3,7 +3,7 @@ package com.armanmaurya.internetradio.ui.shared.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.armanmaurya.internetradio.data.model.RadioStation
-import com.armanmaurya.internetradio.data.repository.FavoriteRepository
+import com.armanmaurya.internetradio.data.repository.LibraryRepository
 import com.armanmaurya.internetradio.data.repository.SettingsRepository
 import com.armanmaurya.internetradio.data.repository.StationRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -32,14 +32,14 @@ data class BrowseUiState(
 class BrowseViewModel @Inject constructor(
     private val repository: StationRepository,
     private val settingsRepository: SettingsRepository,
-    private val favoriteRepository: FavoriteRepository
+    private val libraryRepository: LibraryRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(BrowseUiState())
     val uiState: StateFlow<BrowseUiState> = _uiState.asStateFlow()
 
-    val favoriteStationUuids: StateFlow<Set<String>> = favoriteRepository.getAllFavorites()
-        .map { favorites -> favorites.map { it.stationUuid }.toSet() }
+    val libraryStationUuids: StateFlow<Set<String>> = libraryRepository.getAllStations()
+        .map { stations -> stations.map { it.stationUuid }.toSet() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
 
     private var currentOffset = 0

@@ -4,8 +4,8 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.armanmaurya.internetradio.data.model.RadioStation
 
-@Entity(tableName = "user_stations")
-data class UserStationEntity(
+@Entity(tableName = "library_stations")
+data class LibraryStationEntity(
     @PrimaryKey val stationUuid: String,
     val name: String,
     val url: String,
@@ -17,10 +17,11 @@ data class UserStationEntity(
     val language: String = "",
     val codec: String = "unknown",
     val bitrate: Int = 0,
+    val isCustom: Boolean = false,
     val addedAt: Long = System.currentTimeMillis()
 )
 
-fun UserStationEntity.toDomain() = RadioStation(
+fun LibraryStationEntity.toDomain() = RadioStation(
     changeUuid = "",
     stationUuid = stationUuid,
     name = name,
@@ -52,4 +53,19 @@ fun UserStationEntity.toDomain() = RadioStation(
     geoLong = null,
     geoDistance = null,
     hasExtendedInfo = false
+)
+
+fun RadioStation.toLibraryEntity(isCustom: Boolean = false) = LibraryStationEntity(
+    stationUuid = stationUuid,
+    name = name,
+    url = url,
+    urlResolved = urlResolved ?: "",
+    favicon = favicon ?: "",
+    tags = tags ?: emptyList(),
+    country = country ?: "",
+    countryCode = countryCode ?: "",
+    language = language ?: "",
+    codec = codec ?: "unknown",
+    bitrate = bitrate ?: 0,
+    isCustom = isCustom
 )
