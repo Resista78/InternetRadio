@@ -61,6 +61,7 @@ import com.armanmaurya.internetradio.ui.shared.viewmodels.LibraryViewModel
 import com.armanmaurya.internetradio.ui.mobile.screens.home.tabs.browse.BrowseContent
 import com.armanmaurya.internetradio.ui.shared.viewmodels.BrowseViewModel
 import com.armanmaurya.internetradio.ui.mobile.screens.home.tabs.recent.RecentContent
+import com.armanmaurya.internetradio.ui.shared.viewmodels.RecentViewModel
 import kotlinx.coroutines.launch
 import kotlin.math.absoluteValue
 
@@ -77,7 +78,8 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
     browseViewModel: BrowseViewModel = hiltViewModel(),
     playerViewModel: PlayerViewModel = hiltViewModel(),
-    libraryViewModel: LibraryViewModel = hiltViewModel()
+    libraryViewModel: LibraryViewModel = hiltViewModel(),
+    recentViewModel: RecentViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val browseUiState by browseViewModel.uiState.collectAsStateWithLifecycle()
@@ -110,9 +112,11 @@ fun HomeScreen(
     val sheetState = rememberModalBottomSheetState()
     var isSearchExpanded by remember { mutableStateOf(false) }
 
-    // Forward search query from HomeViewModel → BrowseViewModel
+    // Forward search query from HomeViewModel → ViewModels
     LaunchedEffect(uiState.searchQuery) {
         browseViewModel.onSearchQueryChange(uiState.searchQuery)
+        recentViewModel.onSearchQueryChange(uiState.searchQuery)
+        libraryViewModel.onSearchQueryChange(uiState.searchQuery)
     }
 
     // Keep pager in sync with tab state from HomeViewModel (tab click)

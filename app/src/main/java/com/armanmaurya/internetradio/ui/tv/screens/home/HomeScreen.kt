@@ -114,9 +114,11 @@ fun HomeScreen(
         }
     }
 
-    // Forward search query from HomeViewModel -> BrowseViewModel
+    // Forward search query from HomeViewModel -> BrowseViewModel, RecentViewModel, and LibraryViewModel
     LaunchedEffect(homeUiState.searchQuery) {
         browseViewModel.onSearchQueryChange(homeUiState.searchQuery)
+        recentViewModel.onSearchQueryChange(homeUiState.searchQuery)
+        libraryViewModel.onSearchQueryChange(homeUiState.searchQuery)
     }
 
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Open)

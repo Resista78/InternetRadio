@@ -11,6 +11,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -34,20 +36,32 @@ class RecentViewModel @Inject constructor(
         .map { stations -> stations.map { it.stationUuid }.toSet() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
 
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery = _searchQuery.asStateFlow()
+
+    fun onSearchQueryChange(query: String) {
+        _searchQuery.value = query
+    }
+
     val recentStations: StateFlow<List<RadioStation>> = combine(
         recentRepository.getAllRecent(),
-        settingsRepository.appPreferencesFlow
-    ) { stations, preferences ->
+        settingsRepository.appPreferencesFlow,
+        _searchQuery
+    ) { stations, preferences, query ->
         if (preferences.useFilterOnRecent) {
+            val hasQuery = query.isNotBlank()
             val hasCountryFilter = !preferences.selectedCountryCode.isNullOrBlank()
             val hasLanguageFilter = !preferences.selectedLanguage.isNullOrBlank()
             val hasTagFilter = preferences.selectedTags.isNotEmpty()
 
             // If no filter criteria are set at all, show everything
-            if (!hasCountryFilter && !hasLanguageFilter && !hasTagFilter) {
+            if (!hasQuery && !hasCountryFilter && !hasLanguageFilter && !hasTagFilter) {
                 stations
             } else {
                 stations.filter { station ->
+                    val queryMatch = !hasQuery ||
+                            station.name.contains(query, ignoreCase = true) ||
+                            station.tags.any { tag -> tag.contains(query, ignoreCase = true) }
                     val countryMatch = !hasCountryFilter ||
                             station.countryCode == preferences.selectedCountryCode
                     val languageMatch = !hasLanguageFilter ||
@@ -55,7 +69,7 @@ class RecentViewModel @Inject constructor(
                     val tagsMatch = !hasTagFilter ||
                             preferences.selectedTags.any { it in station.tags }
 
-                    countryMatch && languageMatch && tagsMatch
+                    queryMatch && countryMatch && languageMatch && tagsMatch
                 }
             }
         } else {
