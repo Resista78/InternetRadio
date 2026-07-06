@@ -2,6 +2,8 @@ package com.armanmaurya.internetradio.ui.mobile.screens.home.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -38,6 +40,7 @@ import coil3.compose.AsyncImage
 import com.armanmaurya.internetradio.R
 import com.armanmaurya.internetradio.data.model.RadioStation
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun StationCard(
     station: RadioStation,
@@ -49,10 +52,19 @@ fun StationCard(
     isPlaybackActive: Boolean = false,
     isFavorite: Boolean = false,
 ) {
+    var showMenu by remember { mutableStateOf(false) }
+
     Card(
         modifier = modifier
             .aspectRatio(1f)
-            .clickable(onClick = onClick),
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = {
+                    if (onDeleteClick != null || onEditClick != null) {
+                        showMenu = true
+                    }
+                }
+            ),
         shape = RoundedCornerShape(12.dp),
         border = if (isCurrentlyPlaying) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null
     ) {
@@ -106,24 +118,7 @@ fun StationCard(
             }
 
             if (onDeleteClick != null || onEditClick != null) {
-                var showMenu by remember { mutableStateOf(false) }
-                Box(modifier = Modifier.align(Alignment.TopEnd)) {
-                    IconButton(
-                        onClick = { showMenu = true },
-                        modifier = Modifier
-                            .padding(4.dp)
-                            .background(
-                                color = Color.Black.copy(alpha = 0.4f),
-                                shape = RoundedCornerShape(8.dp)
-                            )
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.MoreVert,
-                            contentDescription = "More Options",
-                            tint = Color.White,
-                            modifier = Modifier.padding(4.dp)
-                        )
-                    }
+                Box(modifier = Modifier.align(Alignment.Center)) {
                     DropdownMenu(
                         expanded = showMenu,
                         onDismissRequest = { showMenu = false }
