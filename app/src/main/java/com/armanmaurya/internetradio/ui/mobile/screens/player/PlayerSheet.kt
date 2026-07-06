@@ -128,6 +128,15 @@ fun PlayerSheetContent(
         }
     }
 
+    val listState = androidx.compose.foundation.lazy.rememberLazyListState()
+    var wasAtTopWhenScrollStarted by remember { mutableStateOf(true) }
+
+    LaunchedEffect(listState.isScrollInProgress) {
+        if (listState.isScrollInProgress) {
+            wasAtTopWhenScrollStarted = listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
+        }
+    }
+
     val maxDragDistance = with(density) { 600.dp.toPx() }
 
     val nestedScrollConnection = remember {
@@ -145,9 +154,12 @@ fun PlayerSheetContent(
 
             override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
                 if (available.y > 0 && historyProgressAnim.value > 0f) {
-                    val delta = -available.y / maxDragDistance
-                    coroutineScope.launch {
-                        historyProgressAnim.snapTo((historyProgressAnim.value + delta).coerceIn(0f, 1f))
+                    val isDrag = source.toString().contains("Drag") || source.toString().contains("UserInput")
+                    if (isDrag && wasAtTopWhenScrollStarted) {
+                        val delta = -available.y / maxDragDistance
+                        coroutineScope.launch {
+                            historyProgressAnim.snapTo((historyProgressAnim.value + delta).coerceIn(0f, 1f))
+                        }
                     }
                     return Offset(0f, available.y)
                 }
@@ -684,6 +696,7 @@ fun PlayerSheetContent(
                             .alpha(historyProgress)
                     ) {
                         LazyColumn(
+                            state = listState,
                             modifier = Modifier
                                 .fillMaxSize()
                                 .nestedScroll(nestedScrollConnection)

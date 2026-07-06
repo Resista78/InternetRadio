@@ -4,7 +4,8 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -109,12 +110,13 @@ class MainActivity : AppCompatActivity() {
                     sheetPeekHeight = sheetPeekHeight,
                     sheetDragHandle = null,
                     sheetContent = {
-                        BoxWithConstraints(
+                        val configuration = LocalConfiguration.current
+                        Box(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .heightIn(min = 72.dp + bottomInset)
                         ) {
-                            val fullHeight = constraints.maxHeight.toFloat()
+                            val fullHeight = with(density) { configuration.screenHeightDp.dp.toPx() }
                             val peekHeightPx = with(density) { (72.dp + bottomInset).toPx() }
                             
                             val progress by remember(fullHeight, peekHeightPx) {
