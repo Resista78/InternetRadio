@@ -13,6 +13,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import android.widget.Toast
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.armanmaurya.internetradio.ui.shared.viewmodels.LibraryViewModel
 
@@ -25,7 +27,7 @@ fun EditStationScreen(
 ) {
     val context = LocalContext.current
     val stations by viewModel.stations.collectAsStateWithLifecycle()
-    val station = if (stationUuid != null) stations.find { it.stationUuid == stationUuid } else null
+    val station = if (stationUuid != null) stations?.find { it.stationUuid == stationUuid } else null
 
     val isEditing = stationUuid != null
 
@@ -214,52 +216,82 @@ fun EditStationScreen(
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                OutlinedTextField(
+                TextField(
                     value = name,
                     onValueChange = { name = it },
                     label = { Text("Name") },
                     modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
+                    singleLine = true,
+                    shape = RoundedCornerShape(16.dp),
+                    colors = TextFieldDefaults.colors(
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent
+                    )
                 )
-                OutlinedTextField(
+                TextField(
                     value = url,
                     onValueChange = { url = it },
                     label = { Text("Stream URL") },
                     modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
+                    singleLine = true,
+                    shape = RoundedCornerShape(16.dp),
+                    colors = TextFieldDefaults.colors(
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent
+                    )
                 )
-                OutlinedTextField(
+                TextField(
                     value = favicon,
                     onValueChange = { favicon = it },
                     label = { Text("Favicon URL (Optional)") },
                     modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
+                    singleLine = true,
+                    shape = RoundedCornerShape(16.dp),
+                    colors = TextFieldDefaults.colors(
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent
+                    )
                 )
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    OutlinedTextField(
+                    TextField(
                         value = country,
                         onValueChange = { country = it },
-                        label = { Text("Country (Optional)") },
+                        label = { Text("Country") },
                         modifier = Modifier.weight(1f),
-                        singleLine = true
+                        singleLine = true,
+                        shape = RoundedCornerShape(16.dp),
+                        colors = TextFieldDefaults.colors(
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent
+                        )
                     )
-                    OutlinedTextField(
+                    TextField(
                         value = language,
                         onValueChange = { language = it },
-                        label = { Text("Language (Optional)") },
+                        label = { Text("Language") },
                         modifier = Modifier.weight(1f),
-                        singleLine = true
+                        singleLine = true,
+                        shape = RoundedCornerShape(16.dp),
+                        colors = TextFieldDefaults.colors(
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent
+                        )
                     )
                 }
-                OutlinedTextField(
+                TextField(
                     value = tags,
                     onValueChange = { tags = it },
                     label = { Text("Tags (comma separated)") },
                     modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
+                    singleLine = true,
+                    shape = RoundedCornerShape(16.dp),
+                    colors = TextFieldDefaults.colors(
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent
+                    )
                 )
                 Spacer(modifier = Modifier.height(16.dp))
             }

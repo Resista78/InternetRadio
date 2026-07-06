@@ -37,7 +37,7 @@ fun AddEditStationScreen(
     onNavigateBack: () -> Unit
 ) {
     val stations by viewModel.stations.collectAsStateWithLifecycle()
-    val station = if (stationUuid != null) stations.find { it.stationUuid == stationUuid } else null
+    val station = if (stationUuid != null) stations?.find { it.stationUuid == stationUuid } else null
     val isEditing = stationUuid != null
 
     BackHandler { onNavigateBack() }

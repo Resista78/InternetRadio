@@ -41,7 +41,8 @@ fun RecentScreen(
     modifier: Modifier = Modifier
 ) {
     val stations by viewModel.recentStations.collectAsStateWithLifecycle()
-    val libraryUuids by libraryViewModel.stationUuids.collectAsStateWithLifecycle()
+    val safeStations = stations ?: emptyList()
+    val libraryUuids by viewModel.libraryStationUuids.collectAsStateWithLifecycle()
     val useFilter by viewModel.useFilter.collectAsStateWithLifecycle()
 
     Box(modifier = modifier.fillMaxSize()) {
@@ -74,7 +75,7 @@ fun RecentScreen(
                 }
             }
 
-            if (stations.isEmpty()) {
+            if (safeStations.isEmpty()) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
                     Box(modifier = Modifier.fillMaxWidth().padding(top = 64.dp), contentAlignment = Alignment.Center) {
                         Text("No recent stations", color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -82,12 +83,12 @@ fun RecentScreen(
                 }
             } else {
                 itemsIndexed(
-                    items = stations,
+                    items = safeStations,
                     key = { _, station -> station.stationUuid }
                 ) { index, station ->
                     StationCard(
                         station = station,
-                        onClick = { onStationClick(stations, index, "tv_recent") },
+                        onClick = { onStationClick(safeStations, index, "tv_recent") },
                         isCurrentlyPlaying = station.stationUuid == playingStationUuid,
                         isPlaybackActive = isPlaybackActive && station.stationUuid == playingStationUuid,
                         isFavorite = station.stationUuid in libraryUuids

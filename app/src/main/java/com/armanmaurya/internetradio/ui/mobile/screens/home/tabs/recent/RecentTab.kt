@@ -1,5 +1,6 @@
 package com.armanmaurya.internetradio.ui.mobile.screens.home.tabs.recent
 
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
@@ -8,12 +9,15 @@ import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material.icons.filled.ViewList
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -21,9 +25,6 @@ import com.armanmaurya.internetradio.data.model.RadioStation
 import com.armanmaurya.internetradio.player.PlaybackSource
 import com.armanmaurya.internetradio.ui.mobile.screens.home.components.StationCard
 import com.armanmaurya.internetradio.ui.mobile.screens.home.components.StationListCard
-import androidx.compose.material.icons.filled.GridView
-import androidx.compose.material.icons.filled.ViewList
-import androidx.compose.ui.res.stringResource
 import com.armanmaurya.internetradio.R
 import com.armanmaurya.internetradio.ui.shared.viewmodels.RecentViewModel
 
@@ -42,17 +43,27 @@ fun RecentContent(
     val useFilter by viewModel.useFilter.collectAsStateWithLifecycle()
     val isGridView by viewModel.isGridView.collectAsStateWithLifecycle()
 
-    LazyVerticalGrid(
-        columns = if (isGridView) GridCells.Fixed(3) else GridCells.Fixed(1),
-        modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(
-            start = 16.dp,
-            end = 16.dp,
-            bottom = 16.dp + contentPadding.calculateBottomPadding()
-        ),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
+    Crossfade(
+        targetState = recentStations,
+        label = "RecentContentTransition",
+        modifier = modifier.fillMaxSize()
+    ) { currentStations ->
+        if (currentStations == null) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        } else {
+            LazyVerticalGrid(
+                columns = if (isGridView) GridCells.Fixed(3) else GridCells.Fixed(1),
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(
+                    start = 16.dp,
+                    end = 16.dp,
+                    bottom = 16.dp + contentPadding.calculateBottomPadding()
+                ),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
         item(span = { GridItemSpan(maxLineSpan) }) {
             Row(
                 modifier = Modifier
@@ -104,7 +115,7 @@ fun RecentContent(
             }
         }
 
-        if (recentStations.isEmpty()) {
+        if (currentStations.isEmpty()) {
             item(span = { GridItemSpan(maxLineSpan) }) {
                 Box(
                     modifier = Modifier
@@ -121,13 +132,13 @@ fun RecentContent(
             }
         } else {
             itemsIndexed(
-                items = recentStations,
+                items = currentStations,
                 key = { _, it -> it.stationUuid }
             ) { index, station ->
                 if (isGridView) {
                     StationCard(
                         station = station,
-                        onClick = { onStationClick(recentStations, index, PlaybackSource.Recent) },
+                        onClick = { onStationClick(currentStations, index, PlaybackSource.Recent) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .animateItem(),
@@ -138,7 +149,7 @@ fun RecentContent(
                 } else {
                     StationListCard(
                         station = station,
-                        onClick = { onStationClick(recentStations, index, PlaybackSource.Recent) },
+                        onClick = { onStationClick(currentStations, index, PlaybackSource.Recent) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .animateItem(),
@@ -150,4 +161,6 @@ fun RecentContent(
             }
         }
     }
+    }
+}
 }

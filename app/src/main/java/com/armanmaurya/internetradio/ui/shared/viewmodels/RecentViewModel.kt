@@ -43,7 +43,7 @@ class RecentViewModel @Inject constructor(
         _searchQuery.value = query
     }
 
-    val recentStations: StateFlow<List<RadioStation>> = combine(
+    val recentStations: StateFlow<List<RadioStation>?> = combine(
         recentRepository.getAllRecent(),
         settingsRepository.appPreferencesFlow,
         _searchQuery
@@ -78,7 +78,7 @@ class RecentViewModel @Inject constructor(
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
-        initialValue = emptyList()
+        initialValue = null
     )
 
     fun toggleFilter() {

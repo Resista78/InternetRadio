@@ -42,7 +42,7 @@ class LibraryViewModel @Inject constructor(
         _searchQuery.value = query
     }
 
-    val stations: StateFlow<List<RadioStation>> = combine(
+    val stations: StateFlow<List<RadioStation>?> = combine(
         libraryRepository.getAllStations(),
         settingsRepository.appPreferencesFlow,
         _searchQuery
@@ -77,7 +77,7 @@ class LibraryViewModel @Inject constructor(
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
-        initialValue = emptyList()
+        initialValue = null
     )
 
     // Set of all bookmarked UUIDs — used by Browse/Recent to show the bookmark badge

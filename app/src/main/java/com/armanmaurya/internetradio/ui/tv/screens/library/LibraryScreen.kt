@@ -41,6 +41,7 @@ fun LibraryScreen(
     modifier: Modifier = Modifier
 ) {
     val stations by viewModel.stations.collectAsStateWithLifecycle()
+    val safeStations = stations ?: emptyList()
     val useFilter by viewModel.useFilter.collectAsStateWithLifecycle()
 
     Box(modifier = modifier.fillMaxSize()) {
@@ -84,7 +85,7 @@ fun LibraryScreen(
                 }
             }
 
-            if (stations.isEmpty()) {
+            if (safeStations.isEmpty()) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
                     Box(modifier = Modifier.fillMaxWidth().padding(top = 64.dp), contentAlignment = Alignment.Center) {
                         Text("No library stations yet", color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -92,12 +93,12 @@ fun LibraryScreen(
                 }
             } else {
                 itemsIndexed(
-                    items = stations,
+                    items = safeStations,
                     key = { _, station -> station.stationUuid }
                 ) { index, station ->
                     StationCard(
                         station = station,
-                        onClick = { onStationClick(stations, index, "tv_library") },
+                        onClick = { onStationClick(safeStations, index, "tv_library") },
                         isCurrentlyPlaying = station.stationUuid == playingStationUuid,
                         isPlaybackActive = isPlaybackActive && station.stationUuid == playingStationUuid
                     )
