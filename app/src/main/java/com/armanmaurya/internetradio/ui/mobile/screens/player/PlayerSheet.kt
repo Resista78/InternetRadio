@@ -65,7 +65,14 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
-
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.BoundsTransform
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.Spring
+import androidx.compose.ui.zIndex
 
 fun Modifier.collapseHeight(progress: Float) = this.layout { measurable, constraints ->
     val placeable = measurable.measure(constraints)
@@ -75,6 +82,7 @@ fun Modifier.collapseHeight(progress: Float) = this.layout { measurable, constra
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun PlayerSheetContent(
     playbackState: PlaybackState,
@@ -103,6 +111,7 @@ fun PlayerSheetContent(
     val uriHandler = LocalUriHandler.current
 
     var showSleepTimerDialog by remember { mutableStateOf(false) }
+    var searchDialogTrack by remember { mutableStateOf<String?>(null) }
 
     var currentTime by remember { mutableLongStateOf(System.currentTimeMillis()) }
     LaunchedEffect(playbackState.sleepTimerEndTime) {
@@ -184,11 +193,12 @@ fun PlayerSheetContent(
         }
     }
 
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .clickable(enabled = progress < 0.1f, onClick = onExpand)
-    ) {
+    SharedTransitionLayout {
+        Box(
+            modifier = modifier
+                .fillMaxSize()
+                .clickable(enabled = progress < 0.1f, onClick = onExpand)
+        ) {
         // --- Thumbnail Calculation ---
         val miniSize = 48.dp
         val baseExpandedSize = (screenWidth - 48.dp).coerceAtMost(400.dp)
@@ -349,20 +359,6 @@ fun PlayerSheetContent(
                         modifier = Modifier.align(Alignment.CenterEnd),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        if (isFavorite) {
-                            IconButton(onClick = {
-                                onCollapse()
-                                onEditStation(station)
-                            }) {
-                                Icon(
-                                    imageVector = Icons.Default.Edit,
-                                    contentDescription = "Edit Station",
-                                    modifier = Modifier.size(28.dp),
-                                    tint = LocalContentColor.current
-                                )
-                            }
-                        }
-
                         IconButton(onClick = { showSleepTimerDialog = true }) {
                             if (playbackState.sleepTimerEndTime != null) {
                                 Box(contentAlignment = Alignment.Center) {
@@ -420,6 +416,22 @@ fun PlayerSheetContent(
                                 tint = if (isFavorite) MaterialTheme.colorScheme.primary else LocalContentColor.current
                             )
                         }
+                    }
+                    
+                    if (station.bitrate > 0) {
+                        val codecText = if (station.codec.isNotBlank()) "${station.codec.uppercase()} • " else ""
+                        Text(
+                            text = "$codecText${station.bitrate} kbps",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .background(
+                                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                                    shape = RoundedCornerShape(16.dp)
+                                )
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
+                        )
                     }
                 }
 
@@ -520,43 +532,169 @@ fun PlayerSheetContent(
                         .alpha(1f - historyProgress),
                     horizontalAlignment = Alignment.Start
                 ) {
-                    Text(
-                        text = station.name,
-                        style = MaterialTheme.typography.headlineMedium,
-                        textAlign = TextAlign.Start,
-                        maxLines = 1,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.basicMarquee()
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = station.name,
+                            style = MaterialTheme.typography.headlineMedium,
+                            textAlign = TextAlign.Start,
+                            maxLines = 1,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier
+                                .weight(1f)
+                                .basicMarquee()
+                        )
+                        
+                        if (isFavorite) {
+                            IconButton(
+                                onClick = {
+                                    onCollapse()
+                                    onEditStation(station)
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Edit,
+                                    contentDescription = "Edit Station",
+                                    tint = LocalContentColor.current
+                                )
+                            }
+                        }
+                    }
 
-                    AnimatedContent(
-                        targetState = if (playbackState.isLoading) "Buffering..." else playbackState.currentTrack ?: "No track data",
-                        transitionSpec = {
-                            fadeIn() togetherWith fadeOut() using SizeTransform(clip = false)
-                        },
-                        label = "TrackAnimation"
-                    ) { displayTrack ->
-                        Column {
-                            Spacer(modifier = Modifier.height(8.dp))
+                    val displayTrack = if (playbackState.isLoading) "Buffering..." else playbackState.currentTrack ?: "No track data"
+                    val isSearchExpanded = searchDialogTrack != null
+
+                    // Wrap in Box with invisible placeholder to prevent layout shift when pill hides
+                    Box(modifier = Modifier.fillMaxWidth()) {
+                        // Invisible placeholder — keeps the space reserved always
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .alpha(0f)
+                                .padding(start = 12.dp, end = 6.dp, top = 2.dp, bottom = 2.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
                             Text(
                                 text = displayTrack,
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.primary,
-                                textAlign = TextAlign.Start,
                                 maxLines = 1,
+                                modifier = Modifier.weight(1f).padding(vertical = 4.dp)
+                            )
+                            Spacer(modifier = Modifier.size(36.dp))
+                            Spacer(modifier = Modifier.size(36.dp))
+                        }
+
+                        // PILL: visible when dialog is closed
+                        androidx.compose.animation.AnimatedVisibility(
+                            visible = !isSearchExpanded,
+                            enter = fadeIn(tween(300)),
+                            exit = fadeOut(tween(300))
+                        ) {
+                            Row(
                                 modifier = Modifier
-                                    .basicMarquee()
-                                    .pointerInput(displayTrack) {
-                                        detectTapGestures(
-                                            onLongPress = {
-                                                if (displayTrack != "Buffering..." && displayTrack != "No track data") {
-                                                    clipboardManager.setText(AnnotatedString(displayTrack))
-                                                    Toast.makeText(context, "Copied track to clipboard", Toast.LENGTH_SHORT).show()
-                                                }
+                                    .sharedBounds(
+                                        sharedContentState = rememberSharedContentState(key = "search_container"),
+                                        animatedVisibilityScope = this,
+                                        enter = fadeIn(tween(300)),
+                                        exit = fadeOut(tween(300)),
+                                        boundsTransform = { _, _ ->
+                                            tween(durationMillis = 350)
+                                        },
+                                        clipInOverlayDuringTransition = OverlayClip(RoundedCornerShape(28.dp))
+                                    )
+                                    .fillMaxWidth()
+                                    .background(
+                                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                                        shape = CircleShape
+                                    )
+                                    .clip(CircleShape)
+                                    .clickable {
+                                        if (displayTrack != "Buffering..." && displayTrack != "No track data") {
+                                            searchDialogTrack = displayTrack
+                                        }
+                                    }
+                                    .padding(start = 12.dp, end = 6.dp, top = 2.dp, bottom = 2.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = displayTrack,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    textAlign = TextAlign.Start,
+                                    maxLines = 1,
+                                    modifier = Modifier
+                                        .sharedElement(
+                                            sharedContentState = rememberSharedContentState(key = "track_text"),
+                                            animatedVisibilityScope = this@AnimatedVisibility,
+                                            boundsTransform = { _, _ ->
+                                                tween(durationMillis = 350)
                                             }
                                         )
-                                    }
-                            )
+                                        .weight(1f)
+                                        .padding(vertical = 4.dp)
+                                        .basicMarquee()
+                                )
+                                // Decorative icons — no click, the whole pill row handles tap
+                                Box(
+                                    modifier = Modifier.size(36.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_youtube),
+                                        contentDescription = null,
+                                        modifier = Modifier
+                                            .sharedElement(
+                                                sharedContentState = rememberSharedContentState(key = "youtube_icon"),
+                                                animatedVisibilityScope = this@AnimatedVisibility,
+                                                boundsTransform = { _, _ ->
+                                                    tween(durationMillis = 350)
+                                                }
+                                            )
+                                            .size(20.dp),
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                                Box(
+                                    modifier = Modifier.size(36.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_spotify),
+                                        contentDescription = null,
+                                        modifier = Modifier
+                                            .sharedElement(
+                                                sharedContentState = rememberSharedContentState(key = "spotify_icon"),
+                                                animatedVisibilityScope = this@AnimatedVisibility,
+                                                boundsTransform = { _, _ ->
+                                                    tween(durationMillis = 350)
+                                                }
+                                            )
+                                            .size(20.dp),
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                                Box(
+                                    modifier = Modifier.size(36.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_google),
+                                        contentDescription = null,
+                                        modifier = Modifier
+                                            .sharedElement(
+                                                sharedContentState = rememberSharedContentState(key = "google_icon"),
+                                                animatedVisibilityScope = this@AnimatedVisibility,
+                                                boundsTransform = { _, _ ->
+                                                    tween(durationMillis = 350)
+                                                }
+                                            )
+                                            .size(20.dp),
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
                         }
                     }
 
@@ -788,7 +926,179 @@ fun PlayerSheetContent(
                 }
             }
         }
+
+            // DIALOG: visible when expanded — same sharedBounds key as pill = true container transform
+            AnimatedVisibility(
+                visible = searchDialogTrack != null,
+                enter = fadeIn(tween(300)),
+                exit = fadeOut(tween(300)),
+                modifier = Modifier.zIndex(100f)
+            ) {
+                val trackToSearch = searchDialogTrack ?: ""
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.55f))
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = { searchDialogTrack = null }
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        modifier = Modifier
+                        .sharedBounds(
+                                sharedContentState = rememberSharedContentState(key = "search_container"),
+                                animatedVisibilityScope = this@AnimatedVisibility,
+                                enter = fadeIn(tween(300)),
+                                exit = fadeOut(tween(300)),
+                                boundsTransform = { _, _ ->
+                                    tween(durationMillis = 350)
+                                },
+                                clipInOverlayDuringTransition = OverlayClip(RoundedCornerShape(28.dp))
+                            )
+                            .fillMaxWidth(0.88f)
+                            .background(
+                                color = MaterialTheme.colorScheme.surfaceVariant,
+                                shape = RoundedCornerShape(28.dp)
+                            )
+                            .clip(RoundedCornerShape(28.dp))
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null,
+                                onClick = {}
+                            )
+                            .padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = trackToSearch,
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                maxLines = 1,
+                                modifier = Modifier
+                                    .sharedElement(
+                                        sharedContentState = rememberSharedContentState(key = "track_text"),
+                                        animatedVisibilityScope = this@AnimatedVisibility,
+                                        boundsTransform = { _, _ ->
+                                            tween(durationMillis = 350)
+                                        }
+                                    )
+                                    .weight(1f)
+                                    .basicMarquee()
+                            )
+                            IconButton(
+                                onClick = {
+                                    clipboardManager.setText(AnnotatedString(trackToSearch))
+                                    Toast.makeText(context, "Copied to clipboard", Toast.LENGTH_SHORT).show()
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.ContentCopy,
+                                    contentDescription = "Copy track name",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(24.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            IconButton(
+                                onClick = {
+                                    val query = java.net.URLEncoder.encode(trackToSearch, "UTF-8")
+                                    val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://www.youtube.com/results?search_query=$query"))
+                                    context.startActivity(intent)
+                                    searchDialogTrack = null
+                                },
+                                modifier = Modifier.size(80.dp)
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_youtube),
+                                    contentDescription = "Search on YouTube",
+                                    modifier = Modifier
+                                        .sharedElement(
+                                            sharedContentState = rememberSharedContentState(key = "youtube_icon"),
+                                            animatedVisibilityScope = this@AnimatedVisibility,
+                                            boundsTransform = { _, _ ->
+                                                tween(durationMillis = 350)
+                                            }
+                                        )
+                                        .size(56.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            
+                            IconButton(
+                                onClick = {
+                                    val query = java.net.URLEncoder.encode(trackToSearch, "UTF-8")
+                                    val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("spotify:search:$query"))
+                                    try {
+                                        context.startActivity(intent)
+                                    } catch (e: Exception) {
+                                        val webIntent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://open.spotify.com/search/$query"))
+                                        context.startActivity(webIntent)
+                                    }
+                                    searchDialogTrack = null
+                                },
+                                modifier = Modifier.size(80.dp)
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_spotify),
+                                    contentDescription = "Search on Spotify",
+                                    modifier = Modifier
+                                        .sharedElement(
+                                            sharedContentState = rememberSharedContentState(key = "spotify_icon"),
+                                            animatedVisibilityScope = this@AnimatedVisibility,
+                                            boundsTransform = { _, _ ->
+                                                tween(durationMillis = 350)
+                                            }
+                                        )
+                                        .size(56.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            
+                            IconButton(
+                                onClick = {
+                                    val query = java.net.URLEncoder.encode(trackToSearch, "UTF-8")
+                                    val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://www.google.com/search?q=$query"))
+                                    context.startActivity(intent)
+                                    searchDialogTrack = null
+                                },
+                                modifier = Modifier.size(80.dp)
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_google),
+                                    contentDescription = "Search on Google",
+                                    modifier = Modifier
+                                        .sharedElement(
+                                            sharedContentState = rememberSharedContentState(key = "google_icon"),
+                                            animatedVisibilityScope = this@AnimatedVisibility,
+                                            boundsTransform = { _, _ ->
+                                                tween(durationMillis = 350)
+                                            }
+                                        )
+                                        .size(56.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
+
 
     if (showSleepTimerDialog) {
         SleepTimerDialog(
