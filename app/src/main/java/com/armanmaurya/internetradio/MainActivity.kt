@@ -27,8 +27,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.rememberNavController
+import com.armanmaurya.internetradio.data.model.RadioStation
 import com.armanmaurya.internetradio.data.repository.SettingsRepository
 import com.armanmaurya.internetradio.ui.mobile.navigation.AppNavHost
+import com.armanmaurya.internetradio.ui.mobile.navigation.AppDestination
 import com.armanmaurya.internetradio.ui.mobile.screens.player.PlayerSheetContent
 import com.armanmaurya.internetradio.ui.shared.viewmodels.PlayerViewModel
 import com.armanmaurya.internetradio.ui.shared.theme.InternetRadioTheme
@@ -155,7 +157,11 @@ class MainActivity : AppCompatActivity() {
                                     scope.launch { scaffoldState.bottomSheetState.expand() }
                                 },
                                 onNext = playerViewModel::next,
-                                onPrevious = playerViewModel::previous
+                                onPrevious = playerViewModel::previous,
+                                onEditStation = { station ->
+                                    scope.launch { scaffoldState.bottomSheetState.partialExpand() }
+                                    navController.navigate(AppDestination.EditStation.createRoute(station.stationUuid))
+                                }
                             )
                         }
                     }

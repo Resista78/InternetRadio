@@ -58,6 +58,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.viewinterop.AndroidView
 import coil3.compose.AsyncImage
 import com.armanmaurya.internetradio.R
+import com.armanmaurya.internetradio.data.model.RadioStation
 import com.armanmaurya.internetradio.data.local.entity.TrackHistoryEntity
 import com.armanmaurya.internetradio.player.PlaybackState
 import kotlinx.coroutines.delay
@@ -88,6 +89,7 @@ fun PlayerSheetContent(
     onExpand: () -> Unit,
     onNext: () -> Unit,
     onPrevious: () -> Unit,
+    onEditStation: (RadioStation) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val station = playbackState.currentStation ?: return
@@ -347,6 +349,20 @@ fun PlayerSheetContent(
                         modifier = Modifier.align(Alignment.CenterEnd),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
+                        if (isFavorite) {
+                            IconButton(onClick = {
+                                onCollapse()
+                                onEditStation(station)
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Default.Edit,
+                                    contentDescription = "Edit Station",
+                                    modifier = Modifier.size(28.dp),
+                                    tint = LocalContentColor.current
+                                )
+                            }
+                        }
+
                         IconButton(onClick = { showSleepTimerDialog = true }) {
                             if (playbackState.sleepTimerEndTime != null) {
                                 Box(contentAlignment = Alignment.Center) {
@@ -394,6 +410,7 @@ fun PlayerSheetContent(
                                 )
                             }
                         }
+
 
                         IconButton(onClick = onToggleFavorite) {
                             Icon(
