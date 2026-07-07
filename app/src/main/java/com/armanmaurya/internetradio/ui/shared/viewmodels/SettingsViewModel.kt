@@ -44,6 +44,12 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    fun setAutoPlayOnStart(enabled: Boolean) {
+        viewModelScope.launch {
+            settingsRepository.setAutoPlayOnStart(enabled)
+        }
+    }
+
     fun setAppLanguage(language: String) {
         viewModelScope.launch {
             settingsRepository.setAppLanguage(language)

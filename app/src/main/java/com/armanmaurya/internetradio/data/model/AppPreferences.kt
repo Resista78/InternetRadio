@@ -18,6 +18,7 @@ data class AppPreferences(
     val resumeStation: String? = null,
     val isGridViewBrowse: Boolean = true,
     val isGridViewRecent: Boolean = true,
+    val autoPlayOnStart: Boolean = false,
     val isGridViewFavorites: Boolean = true,
     val isGridViewAdded: Boolean = true,
     val trackHistoryLimit: Int = 50,

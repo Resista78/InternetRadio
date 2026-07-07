@@ -179,7 +179,9 @@ class PlayerController @Inject constructor(
                     }
                     
                     scope.launch {
-                        val resumeStationJson = settingsRepository.appPreferencesFlow.first().resumeStation
+                        val prefs = settingsRepository.appPreferencesFlow.first()
+                        val resumeStationJson = prefs.resumeStation
+                        val autoPlay = prefs.autoPlayOnStart
                         if (resumeStationJson != null) {
                             try {
                                 val station = Gson().fromJson(resumeStationJson, RadioStation::class.java)
@@ -188,11 +190,15 @@ class PlayerController @Inject constructor(
                                     activeStation = station
                                     _playbackState.update { state ->
                                         state.copy(
-                                            isPlaying = false,
+                                            isPlaying = autoPlay,
                                             currentStation = station
                                         )
                                     }
                                     it.setMediaItem(station.toMediaItem())
+                                    if (autoPlay) {
+                                        it.prepare()
+                                        it.play()
+                                    }
                                 }
                             } catch (e: Exception) {
                                 e.printStackTrace()

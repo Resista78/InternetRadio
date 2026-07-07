@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.Brightness4
 import androidx.compose.material.icons.filled.Contrast
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.StarRate
 import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material3.AlertDialog
@@ -99,7 +100,8 @@ fun SettingsScreen(
                 onSetHistoryLimit = viewModel::setTrackHistoryLimit,
                 defaultTabExpanded = defaultTabExpanded,
                 onToggleDefaultTabExpanded = { defaultTabExpanded = !defaultTabExpanded },
-                onSetDefaultTab = viewModel::setDefaultTab
+                onSetDefaultTab = viewModel::setDefaultTab,
+                onSetAutoPlayOnStart = viewModel::setAutoPlayOnStart
             )
             AboutSection(onAboutClick)
         }
@@ -186,7 +188,8 @@ private fun GeneralSection(
     onSetHistoryLimit: (Int) -> Unit,
     defaultTabExpanded: Boolean,
     onToggleDefaultTabExpanded: () -> Unit,
-    onSetDefaultTab: (Int) -> Unit
+    onSetDefaultTab: (Int) -> Unit,
+    onSetAutoPlayOnStart: (Boolean) -> Unit
 ) {
     val currentLocales = AppCompatDelegate.getApplicationLocales()
     val activeLanguageCode = if (currentLocales.isEmpty) {
@@ -213,6 +216,15 @@ private fun GeneralSection(
         }
 
         val tabs = listOf("Browse", "Recent", "Library")
+        
+        ToggleItem(
+            title = "Auto play on start",
+            subtitle = "Play the last listened station when app starts",
+            isEnabled = uiState.autoPlayOnStart,
+            onToggle = onSetAutoPlayOnStart,
+            icon = Icons.Default.PlayArrow
+        )
+
         ExpandableItem(
             title = "Default Tab on Startup",
             subtitle = tabs.getOrNull(uiState.defaultTab) ?: "Browse",

@@ -128,7 +128,7 @@ fun PlayerSheetContent(
     }
 
     @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
-    val bottomPagerState = androidx.compose.foundation.pager.rememberPagerState(pageCount = { 2 })
+    val bottomPagerState = androidx.compose.foundation.pager.rememberPagerState(pageCount = { 3 })
 
     var currentTime by remember { mutableLongStateOf(System.currentTimeMillis()) }
     LaunchedEffect(playbackState.sleepTimerEndTime) {
@@ -910,9 +910,13 @@ fun PlayerSheetContent(
                 ) {
                     val isHistoryExpanded = historyProgress > 0.5f
                     
-                    val tabWidth = 140.dp
+                    val tabWidth = 110.dp
                     val indicatorOffset by androidx.compose.animation.core.animateDpAsState(
-                        targetValue = if (bottomPagerState.currentPage == 0) 0.dp else tabWidth,
+                        targetValue = when (bottomPagerState.currentPage) {
+                            0 -> 0.dp
+                            1 -> tabWidth
+                            else -> tabWidth * 2
+                        },
                         animationSpec = androidx.compose.animation.core.spring(stiffness = androidx.compose.animation.core.Spring.StiffnessMediumLow),
                         label = "indicatorOffset"
                     )
@@ -927,11 +931,16 @@ fun PlayerSheetContent(
                         label = "tab2Text"
                     )
 
+                    val tab3TextColor by androidx.compose.animation.animateColorAsState(
+                        targetValue = if (isHistoryExpanded && bottomPagerState.currentPage == 2) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        label = "tab3Text"
+                    )
+
                     Box(
                         modifier = Modifier
                             .background(
                                 color = if (isHistoryExpanded) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f) else Color.Transparent,
-                                shape = RoundedCornerShape(24.dp)
+                                shape = RoundedCornerShape(12.dp)
                             )
                             .padding(4.dp)
                     ) {
@@ -943,7 +952,7 @@ fun PlayerSheetContent(
                                         .offset(x = indicatorOffset)
                                         .width(tabWidth)
                                         .fillMaxHeight()
-                                        .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(20.dp))
+                                        .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(10.dp))
                                 )
                             }
                         }
@@ -975,7 +984,7 @@ fun PlayerSheetContent(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = "Recent Tracks",
+                                    text = "Tracks",
                                     fontWeight = FontWeight.Bold,
                                     color = tab1TextColor
                                 )
@@ -1010,6 +1019,38 @@ fun PlayerSheetContent(
                                     text = "Recordings",
                                     fontWeight = FontWeight.Bold,
                                     color = tab2TextColor
+                                )
+                            }
+
+                            // About Tab
+                            Box(
+                                modifier = Modifier
+                                    .width(tabWidth)
+                                    .clickable(
+                                        indication = null,
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        onClick = {
+                                            if (bottomPagerState.currentPage != 2) {
+                                                coroutineScope.launch {
+                                                    bottomPagerState.animateScrollToPage(2)
+                                                    if (!isHistoryExpanded) {
+                                                        historyProgressAnim.animateTo(1f)
+                                                    }
+                                                }
+                                            } else {
+                                                coroutineScope.launch {
+                                                    historyProgressAnim.animateTo(if (isHistoryExpanded) 0f else 1f)
+                                                }
+                                            }
+                                        }
+                                    )
+                                    .padding(vertical = 10.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "About",
+                                    fontWeight = FontWeight.Bold,
+                                    color = tab3TextColor
                                 )
                             }
                         }
@@ -1060,47 +1101,135 @@ fun PlayerSheetContent(
                                         var isExpanded by remember { mutableStateOf(false) }
                                         
                                         @OptIn(ExperimentalFoundationApi::class)
-                                        ListItem(
+                                        Column(
                                             modifier = Modifier
                                                 .padding(vertical = 4.dp)
                                                 .clip(RoundedCornerShape(12.dp))
-                                                .combinedClickable(
-                                                    onClick = { isExpanded = !isExpanded },
-                                                    onLongClick = {
-                                                        clipboardManager.setText(AnnotatedString(track.trackTitle))
-                                                        Toast.makeText(context, "Copied track to clipboard", Toast.LENGTH_SHORT).show()
-                                                    }
-                                                ),
-                                            headlineContent = {
-                                                Text(
-                                                    text = track.trackTitle,
-                                                    style = MaterialTheme.typography.bodyLarge,
-                                                    maxLines = if (isExpanded) Int.MAX_VALUE else 1,
-                                                    overflow = if (isExpanded) TextOverflow.Visible else TextOverflow.Ellipsis
+                                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
+                                                .animateContentSize()
+                                        ) {
+                                            ListItem(
+                                                modifier = Modifier
+                                                    .combinedClickable(
+                                                        onClick = { isExpanded = !isExpanded },
+                                                        onLongClick = {
+                                                            clipboardManager.setText(AnnotatedString(track.trackTitle))
+                                                            Toast.makeText(context, "Copied track to clipboard", Toast.LENGTH_SHORT).show()
+                                                        }
+                                                    ),
+                                                headlineContent = {
+                                                    Text(
+                                                        text = track.trackTitle,
+                                                        style = MaterialTheme.typography.bodyLarge,
+                                                        maxLines = 1,
+                                                        modifier = Modifier.basicMarquee()
+                                                    )
+                                                },
+                                                trailingContent = {
+                                                    Text(
+                                                        text = time,
+                                                        style = MaterialTheme.typography.labelMedium,
+                                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                    )
+                                                },
+                                                leadingContent = {
+                                                    Icon(
+                                                        imageVector = Icons.Default.MusicNote,
+                                                        contentDescription = null,
+                                                        tint = MaterialTheme.colorScheme.primary
+                                                    )
+                                                },
+                                                colors = ListItemDefaults.colors(
+                                                    containerColor = androidx.compose.ui.graphics.Color.Transparent
                                                 )
-                                            },
-                                            trailingContent = {
-                                                Text(
-                                                    text = time,
-                                                    style = MaterialTheme.typography.labelMedium,
-                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                                )
-                                            },
-                                            leadingContent = {
-                                                Icon(
-                                                    imageVector = Icons.Default.MusicNote,
-                                                    contentDescription = null,
-                                                    tint = MaterialTheme.colorScheme.primary
-                                                )
-                                            },
-                                            colors = ListItemDefaults.colors(
-                                                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
                                             )
-                                        )
+                                            
+                                            AnimatedVisibility(
+                                                visible = isExpanded,
+                                                enter = androidx.compose.animation.expandVertically() + androidx.compose.animation.fadeIn(),
+                                                exit = androidx.compose.animation.shrinkVertically() + androidx.compose.animation.fadeOut()
+                                            ) {
+                                                Row(
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .padding(start = 16.dp, end = 16.dp, bottom = 12.dp),
+                                                    horizontalArrangement = Arrangement.SpaceEvenly,
+                                                    verticalAlignment = Alignment.CenterVertically
+                                                ) {
+                                                    IconButton(
+                                                        onClick = {
+                                                            clipboardManager.setText(AnnotatedString(track.trackTitle))
+                                                            Toast.makeText(context, "Copied to clipboard", Toast.LENGTH_SHORT).show()
+                                                            isExpanded = false
+                                                        }
+                                                    ) {
+                                                        Icon(
+                                                            imageVector = Icons.Default.ContentCopy,
+                                                            contentDescription = "Copy track name",
+                                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                            modifier = Modifier.size(32.dp)
+                                                        )
+                                                    }
+                                                    
+                                                    IconButton(
+                                                        onClick = {
+                                                            val query = java.net.URLEncoder.encode(track.trackTitle, "UTF-8")
+                                                            val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://www.youtube.com/results?search_query=$query"))
+                                                            context.startActivity(intent)
+                                                            isExpanded = false
+                                                        }
+                                                    ) {
+                                                        Icon(
+                                                            painter = painterResource(id = R.drawable.ic_youtube),
+                                                            contentDescription = "Search on YouTube",
+                                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                            modifier = Modifier.size(32.dp)
+                                                        )
+                                                    }
+                                                    
+                                                    IconButton(
+                                                        onClick = {
+                                                            val query = java.net.URLEncoder.encode(track.trackTitle, "UTF-8")
+                                                            val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("spotify:search:$query"))
+                                                            try {
+                                                                context.startActivity(intent)
+                                                            } catch (e: Exception) {
+                                                                val webIntent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://open.spotify.com/search/$query"))
+                                                                context.startActivity(webIntent)
+                                                            }
+                                                            isExpanded = false
+                                                        }
+                                                    ) {
+                                                        Icon(
+                                                            painter = painterResource(id = R.drawable.ic_spotify),
+                                                            contentDescription = "Search on Spotify",
+                                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                            modifier = Modifier.size(32.dp)
+                                                        )
+                                                    }
+                                                    
+                                                    IconButton(
+                                                        onClick = {
+                                                            val query = java.net.URLEncoder.encode(track.trackTitle, "UTF-8")
+                                                            val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://www.google.com/search?q=$query"))
+                                                            context.startActivity(intent)
+                                                            isExpanded = false
+                                                        }
+                                                    ) {
+                                                        Icon(
+                                                            painter = painterResource(id = R.drawable.ic_google),
+                                                            contentDescription = "Search on Google",
+                                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                            modifier = Modifier.size(32.dp)
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                             }
-                        } else {
+                        } else if (page == 1) {
                             if (stationRecordings.isEmpty()) {
                                 Box(
                                     modifier = Modifier.fillMaxSize(),
@@ -1115,6 +1244,7 @@ fun PlayerSheetContent(
                             } else {
                                 var expandedRecording by remember { mutableStateOf<com.armanmaurya.internetradio.data.repository.RecordingFile?>(null) }
                                 LazyColumn(
+                                    state = listState,
                                     modifier = Modifier
                                         .fillMaxSize()
                                         .padding(horizontal = 16.dp)
@@ -1132,6 +1262,236 @@ fun PlayerSheetContent(
                                             }
                                         )
                                     }
+                                }
+                            }
+                        } else if (page == 2) {
+                            LazyColumn(
+                                state = listState,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(horizontal = 24.dp)
+                                    .nestedScroll(nestedScrollConnection),
+                                verticalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                item {
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                    Text(
+                                        text = "Station Info",
+                                        style = MaterialTheme.typography.titleLarge,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+                                
+                                if (station.country.isNotBlank() || station.language.isNotBlank()) {
+                                    item {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            if (station.country.isNotBlank()) {
+                                                Box(
+                                                    modifier = Modifier
+                                                        .weight(1f)
+                                                        .clip(RoundedCornerShape(12.dp))
+                                                        .background(MaterialTheme.colorScheme.primaryContainer)
+                                                        .padding(vertical = 12.dp),
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                                        Icon(
+                                                            imageVector = Icons.Default.Public,
+                                                            contentDescription = "Country",
+                                                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                                            modifier = Modifier.size(18.dp)
+                                                        )
+                                                        Spacer(modifier = Modifier.width(6.dp))
+                                                        Text(
+                                                            text = station.country,
+                                                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                                            style = MaterialTheme.typography.titleMedium,
+                                                            fontWeight = FontWeight.Bold
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                            
+                                            if (station.country.isNotBlank() && station.language.isNotBlank()) {
+                                                Box(
+                                                    modifier = Modifier
+                                                        .width(20.dp)
+                                                        .height(4.dp)
+                                                        .background(MaterialTheme.colorScheme.primaryContainer)
+                                                )
+                                            }
+                                            
+                                            if (station.language.isNotBlank()) {
+                                                Box(
+                                                    modifier = Modifier
+                                                        .weight(1f)
+                                                        .clip(RoundedCornerShape(12.dp))
+                                                        .background(MaterialTheme.colorScheme.primaryContainer)
+                                                        .padding(vertical = 12.dp),
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                                        Icon(
+                                                            imageVector = Icons.Default.Language,
+                                                            contentDescription = "Language",
+                                                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                                            modifier = Modifier.size(18.dp)
+                                                        )
+                                                        Spacer(modifier = Modifier.width(6.dp))
+                                                        Text(
+                                                            text = station.language,
+                                                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                                            style = MaterialTheme.typography.titleMedium,
+                                                            fontWeight = FontWeight.Bold
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                
+                                if (station.tags.isNotEmpty()) {
+                                    item {
+                                        Text(
+                                            text = "Tags",
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            modifier = Modifier.padding(top = 8.dp)
+                                        )
+                                        
+                                        @OptIn(ExperimentalLayoutApi::class)
+                                        FlowRow(
+                                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            station.tags.forEach { tag ->
+                                                SuggestionChip(
+                                                    onClick = { },
+                                                    label = { Text(tag) },
+                                                    colors = SuggestionChipDefaults.suggestionChipColors(
+                                                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                                        labelColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                                    ),
+                                                    border = null
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                                
+
+                                
+                                if (station.homepage.isNotBlank()) {
+                                    item {
+                                        Text(
+                                            text = "Website",
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            modifier = Modifier.padding(top = 8.dp)
+                                        )
+                                        @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+                                        Text(
+                                            text = station.homepage,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier
+                                                .combinedClickable(
+                                                    onClick = {
+                                                        val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(station.homepage))
+                                                        try {
+                                                            context.startActivity(intent)
+                                                        } catch (e: Exception) {
+                                                            Toast.makeText(context, "Cannot open website", Toast.LENGTH_SHORT).show()
+                                                        }
+                                                    },
+                                                    onLongClick = {
+                                                        clipboardManager.setText(AnnotatedString(station.homepage))
+                                                        Toast.makeText(context, "Website copied", Toast.LENGTH_SHORT).show()
+                                                    }
+                                                )
+                                                .padding(top = 4.dp, bottom = 8.dp)
+                                        )
+                                    }
+                                }
+                                
+                                if (station.url.isNotBlank()) {
+                                    item {
+                                        Text(
+                                            text = "Stream URL",
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            modifier = Modifier.padding(top = 8.dp)
+                                        )
+                                        @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+                                        Text(
+                                            text = station.url,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier
+                                                .combinedClickable(
+                                                    onClick = {
+                                                        val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(station.url))
+                                                        try {
+                                                            context.startActivity(intent)
+                                                        } catch (e: Exception) {
+                                                            Toast.makeText(context, "Cannot open URL", Toast.LENGTH_SHORT).show()
+                                                        }
+                                                    },
+                                                    onLongClick = {
+                                                        clipboardManager.setText(AnnotatedString(station.url))
+                                                        Toast.makeText(context, "Stream URL copied", Toast.LENGTH_SHORT).show()
+                                                    }
+                                                )
+                                                .padding(top = 4.dp, bottom = 8.dp)
+                                        )
+                                    }
+                                }
+                                
+                                if (station.favicon.isNotBlank()) {
+                                    item {
+                                        Text(
+                                            text = "Favicon URL",
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            modifier = Modifier.padding(top = 8.dp)
+                                        )
+                                        @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+                                        Text(
+                                            text = station.favicon,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier
+                                                .combinedClickable(
+                                                    onClick = {
+                                                        val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(station.favicon))
+                                                        try {
+                                                            context.startActivity(intent)
+                                                        } catch (e: Exception) {
+                                                            Toast.makeText(context, "Cannot open URL", Toast.LENGTH_SHORT).show()
+                                                        }
+                                                    },
+                                                    onLongClick = {
+                                                        clipboardManager.setText(AnnotatedString(station.favicon))
+                                                        Toast.makeText(context, "Favicon URL copied", Toast.LENGTH_SHORT).show()
+                                                    }
+                                                )
+                                                .padding(top = 4.dp, bottom = 32.dp)
+                                        )
+                                    }
+                                }
+                                
+                                item {
+                                    Spacer(modifier = Modifier.height(64.dp))
                                 }
                             }
                         }
