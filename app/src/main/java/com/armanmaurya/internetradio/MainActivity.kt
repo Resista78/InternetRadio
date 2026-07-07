@@ -140,11 +140,16 @@ class MainActivity : AppCompatActivity() {
 
                             val isFavorite by playerViewModel.isFavorite.collectAsStateWithLifecycle()
                             val trackHistory by playerViewModel.trackHistory.collectAsStateWithLifecycle()
+                            val stationRecordings by playerViewModel.stationRecordings.collectAsStateWithLifecycle()
+                            val isRecording by playerViewModel.isRecording.collectAsStateWithLifecycle()
+                            val recordingDuration by playerViewModel.recordingDuration.collectAsStateWithLifecycle()
+                            val amplitude by playerViewModel.amplitude.collectAsStateWithLifecycle()
 
                             PlayerSheetContent(
                                 playbackState = playbackState,
                                 isFavorite = isFavorite,
                                 trackHistory = trackHistory,
+                                stationRecordings = stationRecordings,
                                 progress = progress,
                                 onTogglePlayPause = playerViewModel::togglePlayPause,
                                 onToggleFavorite = playerViewModel::toggleFavorite,
@@ -161,7 +166,11 @@ class MainActivity : AppCompatActivity() {
                                 onEditStation = { station ->
                                     scope.launch { scaffoldState.bottomSheetState.partialExpand() }
                                     navController.navigate(AppDestination.EditStation.createRoute(station.stationUuid))
-                                }
+                                },
+                                isRecording = isRecording,
+                                recordingDuration = recordingDuration,
+                                amplitude = amplitude,
+                                onToggleRecording = playerViewModel::toggleRecording
                             )
                         }
                     }

@@ -9,6 +9,7 @@ import com.armanmaurya.internetradio.data.repository.StationRepository
 import com.armanmaurya.internetradio.data.repository.TrackHistoryRepository
 import com.armanmaurya.internetradio.player.PlaybackSource
 import com.armanmaurya.internetradio.player.PlayerController
+import com.armanmaurya.internetradio.player.RecordingManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
@@ -27,18 +28,30 @@ class PlayerViewModel @Inject constructor(
     private val playerController: PlayerController,
     private val libraryRepository: LibraryRepository,
     private val recentRepository: RecentRepository,
-    private val stationRepository: StationRepository,
-    private val trackHistoryRepository: TrackHistoryRepository
+    private val stationRepository: com.armanmaurya.internetradio.data.repository.StationRepository,
+    private val trackHistoryRepository: TrackHistoryRepository,
+    private val recordingManager: RecordingManager,
+    private val recordingRepository: com.armanmaurya.internetradio.data.repository.RecordingRepository
 ) : ViewModel() {
 
     val playbackState = playerController.playbackState
 
+    val isRecording = recordingManager.isRecording
+    val recordingDuration = recordingManager.recordingDuration
+    val amplitude = recordingManager.amplitude
+
     init {
         playbackState
-            .map { it.isError }
-            .distinctUntilChanged()
-            .onEach { isError ->
-                if (isError) {
+            .onEach { state ->
+                recordingManager.setPlaying(state.isPlaying)
+                
+                // Auto-stop and save recording if station changes or player is completely stopped
+                val isDifferentStation = recordingManager.currentStation?.stationUuid != state.currentStation?.stationUuid
+                if (isRecording.value && (state.currentStation == null || isDifferentStation)) {
+                    recordingManager.stopRecording()
+                }
+
+                if (state.isError) {
                     handlePlaybackFailure()
                 }
             }
@@ -98,6 +111,17 @@ class PlayerViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val stationRecordings = kotlinx.coroutines.flow.combine(
+        playbackState.map { it.currentStation?.name }.distinctUntilChanged(),
+        isRecording // Re-fetch when recording stops
+    ) { stationName, recording -> 
+        stationName to recording
+    }.flatMapLatest { (stationName, recording) ->
+        if (stationName == null || recording) flowOf(emptyList()) // Wait until recording finishes to refresh
+        else flowOf(recordingRepository.getRecordingsForStation(stationName))
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     fun toggleFavorite() {
         val station = playbackState.value.currentStation ?: return
         viewModelScope.launch {
@@ -105,6 +129,16 @@ class PlayerViewModel @Inject constructor(
                 libraryRepository.removeStationFromLibrary(station.stationUuid)
             } else {
                 libraryRepository.addStationToLibrary(station)
+            }
+        }
+    }
+
+    fun toggleRecording() {
+        if (isRecording.value) {
+            recordingManager.stopRecording()
+        } else {
+            playbackState.value.currentStation?.let {
+                recordingManager.startRecording(it)
             }
         }
     }

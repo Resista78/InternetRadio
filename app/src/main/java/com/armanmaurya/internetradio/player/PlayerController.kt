@@ -31,7 +31,8 @@ import javax.inject.Singleton
 class PlayerController @Inject constructor(
     @ApplicationContext private val context: Context,
     private val settingsRepository: SettingsRepository,
-    private val stationRepository: StationRepository
+    private val stationRepository: StationRepository,
+    private val recordingManager: RecordingManager
 ) {
     private var controllerFuture: ListenableFuture<MediaController>? = null
     private val controller: MediaController? get() = if (controllerFuture?.isDone == true) controllerFuture?.get() else null
@@ -92,6 +93,9 @@ class PlayerController @Inject constructor(
                 _playbackState.update { it.copy(currentStation = activeStation) }
                 return
             }
+            
+            // Station has changed, stop previous recording
+            recordingManager.stopRecording()
 
             val tagStation = currentPlaylist.find { it.stationUuid == mediaId } 
                 ?: mediaItem.localConfiguration?.tag as? RadioStation

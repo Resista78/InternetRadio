@@ -63,6 +63,7 @@ import com.armanmaurya.internetradio.data.local.entity.TrackHistoryEntity
 import com.armanmaurya.internetradio.player.PlaybackState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.util.Locale
 import kotlin.math.roundToInt
 
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -88,6 +89,7 @@ fun PlayerSheetContent(
     playbackState: PlaybackState,
     isFavorite: Boolean,
     trackHistory: List<TrackHistoryEntity> = emptyList(),
+    stationRecordings: List<com.armanmaurya.internetradio.data.repository.RecordingFile> = emptyList(),
     progress: Float, // 0.0 (collapsed) to 1.0 (expanded)
     onTogglePlayPause: () -> Unit,
     onToggleFavorite: () -> Unit,
@@ -98,6 +100,10 @@ fun PlayerSheetContent(
     onNext: () -> Unit,
     onPrevious: () -> Unit,
     onEditStation: (RadioStation) -> Unit,
+    isRecording: Boolean = false,
+    recordingDuration: Long = 0L,
+    amplitude: Float = 0f,
+    onToggleRecording: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val station = playbackState.currentStation ?: return
@@ -112,6 +118,17 @@ fun PlayerSheetContent(
 
     var showSleepTimerDialog by remember { mutableStateOf(false) }
     var searchDialogTrack by remember { mutableStateOf<String?>(null) }
+    
+    var wasRecording by remember { mutableStateOf(false) }
+    LaunchedEffect(isRecording) {
+        if (wasRecording && !isRecording) {
+            android.widget.Toast.makeText(context, "Recording Saved!", android.widget.Toast.LENGTH_SHORT).show()
+        }
+        wasRecording = isRecording
+    }
+
+    @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+    val bottomPagerState = androidx.compose.foundation.pager.rememberPagerState(pageCount = { 2 })
 
     var currentTime by remember { mutableLongStateOf(System.currentTimeMillis()) }
     LaunchedEffect(playbackState.sleepTimerEndTime) {
@@ -201,7 +218,7 @@ fun PlayerSheetContent(
         ) {
         // --- Thumbnail Calculation ---
         val miniSize = 48.dp
-        val baseExpandedSize = (screenWidth - 48.dp).coerceAtMost(400.dp)
+        val baseExpandedSize = (screenWidth - 32.dp).coerceAtMost(400.dp)
         val historySize = 48.dp // Match exact collapsed size
         val actualExpandedSize = lerp(baseExpandedSize, historySize, historyProgress)
         
@@ -217,7 +234,7 @@ fun PlayerSheetContent(
         val actualExpandedX = lerp(baseExpandedX, historyExpandedX, historyProgress)
         
         val statusBarPadding = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
-        val baseExpandedY = 100.dp + statusBarPadding
+        val baseExpandedY = 84.dp + statusBarPadding
         val historyExpandedY = 22.dp + statusBarPadding // Shifted further down
         val actualExpandedY = lerp(baseExpandedY, historyExpandedY, historyProgress)
         
@@ -331,7 +348,6 @@ fun PlayerSheetContent(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 24.dp)
                     .statusBarsPadding()
                     .windowInsetsPadding(WindowInsets.navigationBars)
                     .alpha((progress - 0.2f).coerceIn(0f, 0.8f) * 1.25f),
@@ -340,6 +356,7 @@ fun PlayerSheetContent(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
                         .padding(top = 8.dp)
                         .collapseHeight(historyProgress)
                         .alpha(1f - historyProgress)
@@ -359,33 +376,6 @@ fun PlayerSheetContent(
                         modifier = Modifier.align(Alignment.CenterEnd),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        IconButton(onClick = { showSleepTimerDialog = true }) {
-                            if (playbackState.sleepTimerEndTime != null) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    CircularProgressIndicator(
-                                        progress = { sleepTimerProgress },
-                                        modifier = Modifier.size(24.dp),
-                                        color = MaterialTheme.colorScheme.primary,
-                                        strokeWidth = 2.dp,
-                                        strokeCap = StrokeCap.Round
-                                    )
-                                    val mins = (remainingTime / 60000).toInt() + 1
-                                    Text(
-                                        text = mins.toString(),
-                                        style = MaterialTheme.typography.labelSmall,
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.primary
-                                    )
-                                }
-                            } else {
-                                Icon(
-                                    imageVector = Icons.Default.Timer,
-                                    contentDescription = "Sleep Timer",
-                                    tint = LocalContentColor.current
-                                )
-                            }
-                        }
-
                         if (station.homepage.isNotBlank()) {
                             IconButton(onClick = {
                                 try {
@@ -445,7 +435,7 @@ fun PlayerSheetContent(
                         .fillMaxWidth()
                         .height(
                             lerp(
-                                100.dp + baseExpandedSize - 20.dp,
+                                84.dp + baseExpandedSize - 20.dp,
                                 72.dp, // Matches Row height
                                 historyProgress
                             )
@@ -461,8 +451,8 @@ fun PlayerSheetContent(
                                 .alpha(historyProgress),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            // Space for the moving thumbnail: 48 size + 12 gap = 60.dp
-                            Spacer(modifier = Modifier.width(60.dp))
+                            // Space for the moving thumbnail: 24dp offset + 48dp size + 12dp gap = 84dp
+                            Spacer(modifier = Modifier.width(84.dp))
 
                             Column(
                                 modifier = Modifier.weight(1f),
@@ -533,7 +523,9 @@ fun PlayerSheetContent(
                     horizontalAlignment = Alignment.Start
                 ) {
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
@@ -567,7 +559,7 @@ fun PlayerSheetContent(
                     val isSearchExpanded = searchDialogTrack != null
 
                     // Wrap in Box with invisible placeholder to prevent layout shift when pill hides
-                    Box(modifier = Modifier.fillMaxWidth()) {
+                    Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
                         // Invisible placeholder — keeps the space reserved always
                         Row(
                             modifier = Modifier
@@ -602,14 +594,14 @@ fun PlayerSheetContent(
                                         boundsTransform = { _, _ ->
                                             tween(durationMillis = 350)
                                         },
-                                        clipInOverlayDuringTransition = OverlayClip(RoundedCornerShape(28.dp))
+                                        clipInOverlayDuringTransition = OverlayClip(RoundedCornerShape(12.dp))
                                     )
                                     .fillMaxWidth()
                                     .background(
                                         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                                        shape = CircleShape
+                                        shape = RoundedCornerShape(12.dp)
                                     )
-                                    .clip(CircleShape)
+                                    .clip(RoundedCornerShape(12.dp))
                                     .clickable {
                                         if (displayTrack != "Buffering..." && displayTrack != "No track data") {
                                             searchDialogTrack = displayTrack
@@ -698,52 +690,48 @@ fun PlayerSheetContent(
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(48.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly,
-                        verticalAlignment = Alignment.CenterVertically
+                    // Recording UI Pill
+                    AnimatedVisibility(
+                        visible = isRecording,
+                        enter = androidx.compose.animation.expandVertically() + androidx.compose.animation.fadeIn(),
+                        exit = androidx.compose.animation.shrinkVertically() + androidx.compose.animation.fadeOut()
                     ) {
-                        FilledIconButton(
-                            onClick = onPrevious,
-                            enabled = playbackState.hasPrevious,
-                            modifier = Modifier.size(64.dp),
-                            shape = CircleShape
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.SkipPrevious,
-                                contentDescription = "Previous",
-                                modifier = Modifier.size(40.dp)
-                            )
-                        }
-
-                        FilledIconButton(
-                            onClick = onTogglePlayPause,
-                            modifier = Modifier.size(80.dp),
-                            shape = CircleShape
-                        ) {
-                            Icon(
-                                imageVector = if (playbackState.isPlaying || playbackState.isLoading) Icons.Default.Pause else Icons.Default.PlayArrow,
-                                contentDescription = null,
-                                modifier = Modifier.size(48.dp)
-                            )
-                        }
-
-                        FilledIconButton(
-                            onClick = onNext,
-                            enabled = playbackState.hasNext,
-                            modifier = Modifier.size(64.dp),
-                            shape = CircleShape
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.SkipNext,
-                                contentDescription = "Next",
-                                modifier = Modifier.size(40.dp)
-                            )
+                        Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(
+                                        color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f),
+                                        shape = RoundedCornerShape(12.dp)
+                                    )
+                                    .padding(start = 0.dp, end = 16.dp, top = 8.dp, bottom = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                // Waveform
+                                ScrollingWaveform(
+                                    amplitude = amplitude,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                Spacer(modifier = Modifier.width(16.dp))
+                                // Timer text
+                                val formattedDuration = String.format(
+                                    Locale.getDefault(),
+                                    "%02d:%02d",
+                                    recordingDuration / 60,
+                                    recordingDuration % 60
+                                )
+                                Text(
+                                    text = formattedDuration,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
                         }
                     }
 
+                    /*
                     val countryLanguageText = buildString {
                         if (station.country.isNotBlank()) append(station.country)
                         if (station.country.isNotBlank() && station.language.isNotBlank()) append(" • ")
@@ -779,16 +767,122 @@ fun PlayerSheetContent(
                             )
                         }
                     }
+                    */
                 }
 
-                val topSpacerWeight = 1f - historyProgress
-                if (topSpacerWeight > 0.01f) {
-                    Spacer(modifier = Modifier.weight(topSpacerWeight))
-                } else {
-                    Spacer(modifier = Modifier.height(0.dp))
+                // Spacer above controls — takes half the remaining space
+                val halfWeight = (1f - historyProgress) / 2f
+                if (halfWeight > 0.01f) {
+                    Spacer(modifier = Modifier.weight(halfWeight))
                 }
 
-                // Recent Tracks Button (sits naturally below everything else, moves up as above content collapses)
+                // Controls Row
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .padding(bottom = 16.dp)
+                        .collapseHeight(historyProgress)
+                        .alpha(1f - historyProgress),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    FilledIconButton(
+                        onClick = { showSleepTimerDialog = true },
+                        modifier = Modifier.size(48.dp),
+                        shape = CircleShape
+                    ) {
+                        if (playbackState.sleepTimerEndTime != null) {
+                            Box(contentAlignment = Alignment.Center) {
+                                CircularProgressIndicator(
+                                    progress = { sleepTimerProgress },
+                                    modifier = Modifier.size(28.dp),
+                                    color = LocalContentColor.current,
+                                    strokeWidth = 2.dp,
+                                    strokeCap = StrokeCap.Round
+                                )
+                                val mins = (remainingTime / 60000).toInt() + 1
+                                Text(
+                                    text = mins.toString(),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = LocalContentColor.current
+                                )
+                            }
+                        } else {
+                            Icon(
+                                imageVector = Icons.Default.Timer,
+                                contentDescription = "Sleep Timer",
+                                modifier = Modifier.size(28.dp)
+                            )
+                        }
+                    }
+
+                    FilledIconButton(
+                        onClick = onPrevious,
+                        enabled = playbackState.hasPrevious,
+                        modifier = Modifier.size(64.dp),
+                        shape = CircleShape
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.SkipPrevious,
+                            contentDescription = "Previous",
+                            modifier = Modifier.size(40.dp)
+                        )
+                    }
+
+                    FilledIconButton(
+                        onClick = onTogglePlayPause,
+                        modifier = Modifier.size(80.dp),
+                        shape = CircleShape
+                    ) {
+                        Icon(
+                            imageVector = if (playbackState.isPlaying || playbackState.isLoading) Icons.Default.Pause else Icons.Default.PlayArrow,
+                            contentDescription = null,
+                            modifier = Modifier.size(48.dp)
+                        )
+                    }
+
+                    FilledIconButton(
+                        onClick = onNext,
+                        enabled = playbackState.hasNext,
+                        modifier = Modifier.size(64.dp),
+                        shape = CircleShape
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.SkipNext,
+                            contentDescription = "Next",
+                            modifier = Modifier.size(40.dp)
+                        )
+                    }
+
+                    FilledIconButton(
+                        onClick = onToggleRecording,
+                        modifier = Modifier.size(48.dp),
+                        shape = CircleShape,
+                        colors = if (isRecording) {
+                            androidx.compose.material3.IconButtonDefaults.filledIconButtonColors(
+                                containerColor = MaterialTheme.colorScheme.errorContainer,
+                                contentColor = MaterialTheme.colorScheme.error
+                            )
+                        } else {
+                            androidx.compose.material3.IconButtonDefaults.filledIconButtonColors()
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Mic,
+                            contentDescription = "Record",
+                            modifier = Modifier.size(28.dp)
+                        )
+                    }
+                }
+
+                // Spacer below controls — takes the other half of the remaining space
+                if (halfWeight > 0.01f) {
+                    Spacer(modifier = Modifier.weight(halfWeight))
+                }
+
+                // Bottom Tabs (sits naturally below everything else, moves up as above content collapses)
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -815,110 +909,229 @@ fun PlayerSheetContent(
                     horizontalArrangement = Arrangement.Center
                 ) {
                     val isHistoryExpanded = historyProgress > 0.5f
-                    val interactionSource = remember { MutableInteractionSource() }
+                    
+                    val tabWidth = 140.dp
+                    val indicatorOffset by androidx.compose.animation.core.animateDpAsState(
+                        targetValue = if (bottomPagerState.currentPage == 0) 0.dp else tabWidth,
+                        animationSpec = androidx.compose.animation.core.spring(stiffness = androidx.compose.animation.core.Spring.StiffnessMediumLow),
+                        label = "indicatorOffset"
+                    )
+
+                    val tab1TextColor by androidx.compose.animation.animateColorAsState(
+                        targetValue = if (isHistoryExpanded && bottomPagerState.currentPage == 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        label = "tab1Text"
+                    )
+
+                    val tab2TextColor by androidx.compose.animation.animateColorAsState(
+                        targetValue = if (isHistoryExpanded && bottomPagerState.currentPage == 1) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        label = "tab2Text"
+                    )
+
                     Box(
                         modifier = Modifier
                             .background(
-                                if (isHistoryExpanded) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f) else Color.Transparent,
-                                RoundedCornerShape(16.dp)
+                                color = if (isHistoryExpanded) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f) else Color.Transparent,
+                                shape = RoundedCornerShape(24.dp)
                             )
-                            .clickable(
-                                interactionSource = interactionSource,
-                                indication = null,
-                                onClick = {
-                                    coroutineScope.launch {
-                                        historyProgressAnim.animateTo(if (isHistoryExpanded) 0f else 1f)
-                                    }
-                                }
-                            )
-                            .padding(horizontal = 24.dp, vertical = 12.dp),
-                        contentAlignment = Alignment.Center
+                            .padding(4.dp)
                     ) {
-                        Text(
-                            text = "Recent Tracks",
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
+                        // The sliding indicator
+                        if (isHistoryExpanded) {
+                            Box(modifier = Modifier.matchParentSize()) {
+                                Box(
+                                    modifier = Modifier
+                                        .offset(x = indicatorOffset)
+                                        .width(tabWidth)
+                                        .fillMaxHeight()
+                                        .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(20.dp))
+                                )
+                            }
+                        }
+
+                        // The texts
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // Recent Tracks Tab
+                            Box(
+                                modifier = Modifier
+                                    .width(tabWidth)
+                                    .clickable(
+                                        indication = null,
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        onClick = {
+                                            if (bottomPagerState.currentPage != 0) {
+                                                coroutineScope.launch {
+                                                    bottomPagerState.animateScrollToPage(0)
+                                                }
+                                            } else {
+                                                coroutineScope.launch {
+                                                    historyProgressAnim.animateTo(if (isHistoryExpanded) 0f else 1f)
+                                                }
+                                            }
+                                        }
+                                    )
+                                    .padding(vertical = 10.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "Recent Tracks",
+                                    fontWeight = FontWeight.Bold,
+                                    color = tab1TextColor
+                                )
+                            }
+
+                            // Recordings Tab
+                            Box(
+                                modifier = Modifier
+                                    .width(tabWidth)
+                                    .clickable(
+                                        indication = null,
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        onClick = {
+                                            if (bottomPagerState.currentPage != 1) {
+                                                coroutineScope.launch {
+                                                    bottomPagerState.animateScrollToPage(1)
+                                                    if (!isHistoryExpanded) {
+                                                        historyProgressAnim.animateTo(1f)
+                                                    }
+                                                }
+                                            } else {
+                                                coroutineScope.launch {
+                                                    historyProgressAnim.animateTo(if (isHistoryExpanded) 0f else 1f)
+                                                }
+                                            }
+                                        }
+                                    )
+                                    .padding(vertical = 10.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "Recordings",
+                                    fontWeight = FontWeight.Bold,
+                                    color = tab2TextColor
+                                )
+                            }
+                        }
                     }
                 }
 
-                // Track History Panel Content
+                // Track History & Recordings Panel Content
                 if (historyProgress > 0f) {
-                    Column(
+                    @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+                    androidx.compose.foundation.pager.HorizontalPager(
+                        state = bottomPagerState,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .weight(historyProgress.coerceAtLeast(0.01f)) // Takes remaining space in the expanded view
+                            .weight(historyProgress.coerceAtLeast(0.01f))
                             .alpha(historyProgress)
-                    ) {
-                        LazyColumn(
-                            state = listState,
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .nestedScroll(nestedScrollConnection)
-                        ) {
-                            if (trackHistory.isEmpty()) {
-                                item {
-                                    Box(
-                                        modifier = Modifier.fillMaxWidth().padding(32.dp),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Text(
-                                            text = "No tracks played yet",
-                                            style = MaterialTheme.typography.bodyLarge,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                    ) { page ->
+                        if (page == 0) {
+                            LazyColumn(
+                                state = listState,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(horizontal = 16.dp)
+                                    .nestedScroll(nestedScrollConnection)
+                            ) {
+                                if (trackHistory.isEmpty()) {
+                                    item {
+                                        Box(
+                                            modifier = Modifier.fillMaxWidth().padding(32.dp),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text(
+                                                text = "No tracks played yet",
+                                                style = MaterialTheme.typography.bodyLarge,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+                                    }
+                                } else {
+                                    items(trackHistory.size) { index ->
+                                        val track = trackHistory[index]
+                                        val time = DateUtils.getRelativeTimeSpanString(
+                                            track.timestamp,
+                                            System.currentTimeMillis(),
+                                            DateUtils.MINUTE_IN_MILLIS,
+                                            DateUtils.FORMAT_ABBREV_RELATIVE
+                                        ).toString()
+                                        
+                                        var isExpanded by remember { mutableStateOf(false) }
+                                        
+                                        @OptIn(ExperimentalFoundationApi::class)
+                                        ListItem(
+                                            modifier = Modifier
+                                                .padding(vertical = 4.dp)
+                                                .clip(RoundedCornerShape(12.dp))
+                                                .combinedClickable(
+                                                    onClick = { isExpanded = !isExpanded },
+                                                    onLongClick = {
+                                                        clipboardManager.setText(AnnotatedString(track.trackTitle))
+                                                        Toast.makeText(context, "Copied track to clipboard", Toast.LENGTH_SHORT).show()
+                                                    }
+                                                ),
+                                            headlineContent = {
+                                                Text(
+                                                    text = track.trackTitle,
+                                                    style = MaterialTheme.typography.bodyLarge,
+                                                    maxLines = if (isExpanded) Int.MAX_VALUE else 1,
+                                                    overflow = if (isExpanded) TextOverflow.Visible else TextOverflow.Ellipsis
+                                                )
+                                            },
+                                            trailingContent = {
+                                                Text(
+                                                    text = time,
+                                                    style = MaterialTheme.typography.labelMedium,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
+                                            },
+                                            leadingContent = {
+                                                Icon(
+                                                    imageVector = Icons.Default.MusicNote,
+                                                    contentDescription = null,
+                                                    tint = MaterialTheme.colorScheme.primary
+                                                )
+                                            },
+                                            colors = ListItemDefaults.colors(
+                                                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                                            )
                                         )
                                     }
                                 }
-                            } else {
-                                items(trackHistory.size) { index ->
-                                    val track = trackHistory[index]
-                                    val time = DateUtils.getRelativeTimeSpanString(
-                                        track.timestamp,
-                                        System.currentTimeMillis(),
-                                        DateUtils.MINUTE_IN_MILLIS,
-                                        DateUtils.FORMAT_ABBREV_RELATIVE
-                                    ).toString()
-                                    
-                                    var isExpanded by remember { mutableStateOf(false) }
-                                    
-                                    @OptIn(ExperimentalFoundationApi::class)
-                                    ListItem(
-                                        modifier = Modifier
-                                            .padding(vertical = 4.dp)
-                                            .clip(RoundedCornerShape(12.dp))
-                                            .combinedClickable(
-                                                onClick = { isExpanded = !isExpanded },
-                                                onLongClick = {
-                                                    clipboardManager.setText(AnnotatedString(track.trackTitle))
-                                                    Toast.makeText(context, "Copied track to clipboard", Toast.LENGTH_SHORT).show()
-                                                }
-                                            ),
-                                        headlineContent = {
-                                            Text(
-                                                text = track.trackTitle,
-                                                style = MaterialTheme.typography.bodyLarge,
-                                                maxLines = if (isExpanded) Int.MAX_VALUE else 1,
-                                                overflow = if (isExpanded) TextOverflow.Visible else TextOverflow.Ellipsis
-                                            )
-                                        },
-                                        trailingContent = {
-                                            Text(
-                                                text = time,
-                                                style = MaterialTheme.typography.labelMedium,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                                            )
-                                        },
-                                        leadingContent = {
-                                            Icon(
-                                                imageVector = Icons.Default.MusicNote,
-                                                contentDescription = null,
-                                                tint = MaterialTheme.colorScheme.primary
-                                            )
-                                        },
-                                        colors = ListItemDefaults.colors(
-                                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-                                        )
+                            }
+                        } else {
+                            if (stationRecordings.isEmpty()) {
+                                Box(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = "No recordings yet",
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
+                                }
+                            } else {
+                                var expandedRecording by remember { mutableStateOf<com.armanmaurya.internetradio.data.repository.RecordingFile?>(null) }
+                                LazyColumn(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(horizontal = 16.dp)
+                                        .nestedScroll(nestedScrollConnection)
+                                ) {
+                                    items(stationRecordings.size) { index ->
+                                        val recording = stationRecordings[index]
+                                        val isExpanded = expandedRecording?.uri == recording.uri
+                                        
+                                        com.armanmaurya.internetradio.ui.mobile.components.RecordingFileItem(
+                                            recording = recording,
+                                            isExpanded = isExpanded,
+                                            onClick = {
+                                                expandedRecording = if (isExpanded) null else recording
+                                            }
+                                        )
+                                    }
                                 }
                             }
                         }

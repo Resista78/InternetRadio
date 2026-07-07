@@ -28,6 +28,7 @@ import androidx.compose.material3.LocalRippleConfiguration
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TabRow
+import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
@@ -79,7 +80,8 @@ fun HomeScreen(
     browseViewModel: BrowseViewModel = hiltViewModel(),
     playerViewModel: PlayerViewModel = hiltViewModel(),
     libraryViewModel: LibraryViewModel = hiltViewModel(),
-    recentViewModel: RecentViewModel = hiltViewModel()
+    recentViewModel: RecentViewModel = hiltViewModel(),
+    recordingsViewModel: com.armanmaurya.internetradio.ui.shared.viewmodels.RecordingsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val browseUiState by browseViewModel.uiState.collectAsStateWithLifecycle()
@@ -94,7 +96,8 @@ fun HomeScreen(
     val tabs = listOf(
         stringResource(R.string.tab_browse),
         stringResource(R.string.tab_recent),
-        "Library"
+        "Library",
+        "Recordings"
     )
     val pagerState = rememberPagerState(
         initialPage = uiState.selectedTab,
@@ -188,8 +191,9 @@ fun HomeScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            TabRow(
+            ScrollableTabRow(
                 selectedTabIndex = pagerState.currentPage,
+                edgePadding = 8.dp,
                 modifier = Modifier.padding(horizontal = 4.dp),
                 indicator = { tabPositions ->
                     if (pagerState.currentPage < tabPositions.size) {
@@ -251,7 +255,7 @@ fun HomeScreen(
                                     else
                                         MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier
-                                        .padding(horizontal = 12.dp)
+                                        .padding(horizontal = 18.dp)
                                         .onGloballyPositioned { coords ->
                                             if (index < tabWidths.size) {
                                                 tabWidths[index] = with(density) { coords.size.width.toDp() }
@@ -294,6 +298,10 @@ fun HomeScreen(
                             contentPadding = contentPadding,
                             playingStationUuid = playingStationUuid,
                             isPlaybackActive = isPlaybackActive
+                        )
+                        3 -> com.armanmaurya.internetradio.ui.mobile.screens.home.tabs.recordings.RecordingsContent(
+                            viewModel = recordingsViewModel,
+                            contentPadding = contentPadding
                         )
                     }
                 }
