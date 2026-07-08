@@ -971,7 +971,10 @@ fun PlayerSheetContent(
                                         onClick = {
                                             if (bottomPagerState.currentPage != 0) {
                                                 coroutineScope.launch {
-                                                    bottomPagerState.animateScrollToPage(0)
+                                                    launch { bottomPagerState.animateScrollToPage(0) }
+                                                    if (!isHistoryExpanded) {
+                                                        launch { historyProgressAnim.animateTo(1f) }
+                                                    }
                                                 }
                                             } else {
                                                 coroutineScope.launch {
@@ -1000,9 +1003,9 @@ fun PlayerSheetContent(
                                         onClick = {
                                             if (bottomPagerState.currentPage != 1) {
                                                 coroutineScope.launch {
-                                                    bottomPagerState.animateScrollToPage(1)
+                                                    launch { bottomPagerState.animateScrollToPage(1) }
                                                     if (!isHistoryExpanded) {
-                                                        historyProgressAnim.animateTo(1f)
+                                                        launch { historyProgressAnim.animateTo(1f) }
                                                     }
                                                 }
                                             } else {
@@ -1032,9 +1035,9 @@ fun PlayerSheetContent(
                                         onClick = {
                                             if (bottomPagerState.currentPage != 2) {
                                                 coroutineScope.launch {
-                                                    bottomPagerState.animateScrollToPage(2)
+                                                    launch { bottomPagerState.animateScrollToPage(2) }
                                                     if (!isHistoryExpanded) {
-                                                        historyProgressAnim.animateTo(1f)
+                                                        launch { historyProgressAnim.animateTo(1f) }
                                                     }
                                                 }
                                             } else {
@@ -1230,26 +1233,28 @@ fun PlayerSheetContent(
                                 }
                             }
                         } else if (page == 1) {
-                            if (stationRecordings.isEmpty()) {
-                                Box(
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = "No recordings yet",
-                                        style = MaterialTheme.typography.bodyLarge,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                            } else {
-                                var expandedRecording by remember { mutableStateOf<com.armanmaurya.internetradio.data.repository.RecordingFile?>(null) }
-                                LazyColumn(
-                                    state = listState,
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .padding(horizontal = 16.dp)
-                                        .nestedScroll(nestedScrollConnection)
-                                ) {
+                            var expandedRecording by remember { mutableStateOf<com.armanmaurya.internetradio.data.repository.RecordingFile?>(null) }
+                            LazyColumn(
+                                state = listState,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(horizontal = 16.dp)
+                                    .nestedScroll(nestedScrollConnection)
+                            ) {
+                                if (stationRecordings.isEmpty()) {
+                                    item {
+                                        Box(
+                                            modifier = Modifier.fillParentMaxSize(),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text(
+                                                text = "No recordings yet",
+                                                style = MaterialTheme.typography.bodyLarge,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+                                    }
+                                } else {
                                     items(stationRecordings.size) { index ->
                                         val recording = stationRecordings[index]
                                         val isExpanded = expandedRecording?.uri == recording.uri
