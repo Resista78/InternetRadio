@@ -15,6 +15,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -62,6 +64,9 @@ class RecordingManager @Inject constructor(
     private var bytesWritten = 0L
     private var pfd: android.os.ParcelFileDescriptor? = null
     private var encoder: PcmToAacEncoder? = null
+    
+    private val audioChannel = Channel<ByteArray>(capacity = 100, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    private var encodingJob: Job? = null
     
     private var sampleRate = 44100
     private var channelCount = 2
@@ -124,6 +129,7 @@ class RecordingManager @Inject constructor(
                 _isRecording.value = true
                 _recordingDuration.value = 0L
                 startTimer()
+                startEncodingJob()
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -140,6 +146,12 @@ class RecordingManager @Inject constructor(
         _isRecording.value = false
         timerJob?.cancel()
         timerJob = null
+        
+        encodingJob?.cancel()
+        encodingJob = null
+        
+        // Clear any remaining audio chunks
+        while (audioChannel.tryReceive().isSuccess) { }
         
         try {
             encoder?.stop()
@@ -163,12 +175,29 @@ class RecordingManager @Inject constructor(
 
     fun writeBytes(buffer: ByteArray, offset: Int, length: Int) {
         if (_isRecording.value && isPlaying) {
-            try {
-                encoder?.encode(buffer, offset, length)
-                bytesWritten += length
-            } catch (e: Exception) {
-                e.printStackTrace()
-                stopRecording() // Stop if write fails
+            val chunk = if (offset == 0 && length == buffer.size) {
+                buffer
+            } else {
+                buffer.copyOfRange(offset, offset + length)
+            }
+            audioChannel.trySend(chunk)
+        }
+    }
+
+    private fun startEncodingJob() {
+        encodingJob?.cancel()
+        encodingJob = scope.launch {
+            for (buffer in audioChannel) {
+                if (_isRecording.value && isPlaying) {
+                    try {
+                        encoder?.encode(buffer, 0, buffer.size)
+                        bytesWritten += buffer.size
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        stopRecording() // Stop if write fails
+                        break
+                    }
+                }
             }
         }
     }
