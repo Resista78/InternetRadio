@@ -35,6 +35,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.material3.SmallFloatingActionButton
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -81,10 +89,14 @@ fun BrowseContent(
         }
     }
 
-    LazyVerticalGrid(
-        state = gridState,
-        columns = if (uiState.isGridView) GridCells.Fixed(3) else GridCells.Fixed(1),
-        modifier = modifier.fillMaxSize(),
+    val showScrollToTop by remember { derivedStateOf { gridState.firstVisibleItemIndex > 0 } }
+    val coroutineScope = rememberCoroutineScope()
+
+    Box(modifier = modifier.fillMaxSize()) {
+        LazyVerticalGrid(
+            state = gridState,
+            columns = if (uiState.isGridView) GridCells.Fixed(3) else GridCells.Fixed(1),
+            modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(
             start = 16.dp,
             end = 16.dp,
@@ -197,6 +209,31 @@ fun BrowseContent(
                         }
                     }
                 }
+            }
+        }
+    }
+
+        AnimatedVisibility(
+            visible = showScrollToTop,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(bottom = 16.dp + contentPadding.calculateBottomPadding(), end = 16.dp),
+            enter = scaleIn() + fadeIn(),
+            exit = scaleOut() + fadeOut()
+        ) {
+            SmallFloatingActionButton(
+                onClick = {
+                    coroutineScope.launch {
+                        gridState.animateScrollToItem(0)
+                    }
+                },
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ArrowUpward,
+                    contentDescription = "Scroll to top"
+                )
             }
         }
     }

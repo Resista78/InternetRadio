@@ -14,6 +14,8 @@ import androidx.compose.material.icons.filled.ViewList
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.material.icons.filled.ArrowUpward
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -53,9 +55,15 @@ fun RecentContent(
                 CircularProgressIndicator()
             }
         } else {
-            LazyVerticalGrid(
-                columns = if (isGridView) GridCells.Fixed(3) else GridCells.Fixed(1),
-                modifier = Modifier.fillMaxSize(),
+            val gridState = androidx.compose.foundation.lazy.grid.rememberLazyGridState()
+            val showScrollToTop by androidx.compose.runtime.remember { androidx.compose.runtime.derivedStateOf { gridState.firstVisibleItemIndex > 0 } }
+            val coroutineScope = androidx.compose.runtime.rememberCoroutineScope()
+
+            Box(modifier = Modifier.fillMaxSize()) {
+                LazyVerticalGrid(
+                    state = gridState,
+                    columns = if (isGridView) GridCells.Fixed(3) else GridCells.Fixed(1),
+                    modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(
                     start = 16.dp,
                     end = 16.dp,
@@ -161,6 +169,31 @@ fun RecentContent(
             }
         }
     }
+
+                androidx.compose.animation.AnimatedVisibility(
+                    visible = showScrollToTop,
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(bottom = 16.dp + contentPadding.calculateBottomPadding(), end = 16.dp),
+                    enter = androidx.compose.animation.scaleIn() + androidx.compose.animation.fadeIn(),
+                    exit = androidx.compose.animation.scaleOut() + androidx.compose.animation.fadeOut()
+                ) {
+                    androidx.compose.material3.SmallFloatingActionButton(
+                        onClick = {
+                            coroutineScope.launch {
+                                gridState.animateScrollToItem(0)
+                            }
+                        },
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowUpward,
+                            contentDescription = "Scroll to top"
+                        )
+                    }
+                }
+            }
+        }
     }
-}
 }

@@ -14,6 +14,14 @@ import androidx.compose.material.icons.filled.ViewList
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -54,13 +62,19 @@ fun LibraryContent(
                 CircularProgressIndicator()
             }
         } else {
-            LazyVerticalGrid(
-                columns = if (isGridView) GridCells.Fixed(3) else GridCells.Fixed(1),
-                modifier = Modifier.fillMaxSize(),
+            val gridState = androidx.compose.foundation.lazy.grid.rememberLazyGridState()
+            val showScrollToTop by androidx.compose.runtime.remember { androidx.compose.runtime.derivedStateOf { gridState.firstVisibleItemIndex > 0 } }
+            val coroutineScope = rememberCoroutineScope()
+
+            Box(modifier = Modifier.fillMaxSize()) {
+                LazyVerticalGrid(
+                    state = gridState,
+                    columns = if (isGridView) GridCells.Fixed(3) else GridCells.Fixed(1),
+                    modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(
                     start = 16.dp,
                     end = 16.dp,
-                    bottom = 16.dp + contentPadding.calculateBottomPadding()
+                    bottom = 16.dp + contentPadding.calculateBottomPadding() + 120.dp // Extra padding for stacked FABs
                 ),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -168,7 +182,32 @@ fun LibraryContent(
                 }
             }
         }
-    }
-    }
-}
-}
+        } // LazyVerticalGrid closes
+        
+        AnimatedVisibility(
+            visible = showScrollToTop,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(bottom = 16.dp + contentPadding.calculateBottomPadding() + 72.dp, end = 16.dp),
+            enter = scaleIn() + fadeIn(),
+            exit = scaleOut() + fadeOut()
+        ) {
+            SmallFloatingActionButton(
+                onClick = {
+                    coroutineScope.launch {
+                        gridState.animateScrollToItem(0)
+                    }
+                },
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ArrowUpward,
+                    contentDescription = "Scroll to top"
+                )
+            }
+        } // AnimatedVisibility closes
+    } // Box closes
+    } // else closes
+} // Crossfade closes
+} // LibraryContent closes
