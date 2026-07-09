@@ -22,7 +22,7 @@ class MainViewModel @Inject constructor(
     private val _updateAvailable = MutableStateFlow<GithubRelease?>(null)
     val updateAvailable: StateFlow<GithubRelease?> = _updateAvailable.asStateFlow()
 
-    fun checkForUpdates(currentVersion: String, force: Boolean = false) {
+    fun checkForUpdates(currentVersion: String, force: Boolean = false, onResult: ((Boolean) -> Unit)? = null) {
         viewModelScope.launch {
             val appPreferences = settingsRepository.appPreferencesFlow.first()
             val lastCheckTime = appPreferences.lastUpdateCheckTime
@@ -31,13 +31,18 @@ class MainViewModel @Inject constructor(
 
             if (force || currentTime - lastCheckTime > twentyFourHours) {
                 val release = updateRepository.getLatestRelease()
+                var hasUpdate = false
                 if (release != null) {
                     val latestVersion = release.tag_name
                     if (isNewerVersion(currentVersion, latestVersion)) {
                         _updateAvailable.value = release
+                        hasUpdate = true
                     }
                 }
                 settingsRepository.setLastUpdateCheckTime(currentTime)
+                onResult?.invoke(hasUpdate)
+            } else {
+                onResult?.invoke(false)
             }
         }
     }

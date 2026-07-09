@@ -205,12 +205,21 @@ class MainActivity : AppCompatActivity() {
                         contentPadding = innerPadding,
                         modifier = Modifier.fillMaxSize(),
                         onCheckUpdates = {
+                            runOnUiThread {
+                                android.widget.Toast.makeText(this@MainActivity, "Checking for updates...", android.widget.Toast.LENGTH_SHORT).show()
+                            }
                             val vName = try {
                                 packageManager.getPackageInfo(packageName, 0).versionName ?: "0.0.0"
                             } catch (e: Exception) {
                                 "0.0.0"
                             }
-                            mainViewModel.checkForUpdates(vName, force = true)
+                            mainViewModel.checkForUpdates(vName, force = true) { hasUpdate ->
+                                if (!hasUpdate) {
+                                    runOnUiThread {
+                                        android.widget.Toast.makeText(this@MainActivity, "No update available", android.widget.Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                            }
                         }
                     )
                 }
