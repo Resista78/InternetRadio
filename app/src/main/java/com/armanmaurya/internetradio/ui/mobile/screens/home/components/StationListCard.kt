@@ -46,6 +46,14 @@ fun StationListCard(
     isPlaybackActive: Boolean = false,
     isFavorite: Boolean = false,
 ) {
+    val subtitleText = remember(station.country, station.language) {
+        buildString {
+            if (station.country.isNotBlank()) append(station.country)
+            if (station.country.isNotBlank() && station.language.isNotBlank()) append(" • ")
+            if (station.language.isNotBlank()) append(station.language)
+        }
+    }
+
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -118,17 +126,7 @@ fun StationListCard(
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = buildString {
-                        if (station.country.isNotBlank()) {
-                            append(station.country)
-                        }
-                        if (station.country.isNotBlank() && station.language.isNotBlank()) {
-                            append(" • ")
-                        }
-                        if (station.language.isNotBlank()) {
-                            append(station.language)
-                        }
-                    },
+                    text = subtitleText,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,

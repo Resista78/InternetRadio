@@ -103,6 +103,14 @@ fun HomeScreen(
         initialPage = uiState.selectedTab,
         pageCount = { tabs.size }
     )
+    
+    // Defer beyondViewportPageCount to avoid lag during navigation transitions
+    var beyondBounds by remember { androidx.compose.runtime.mutableIntStateOf(0) }
+    LaunchedEffect(Unit) {
+        kotlinx.coroutines.delay(400)
+        beyondBounds = 1
+    }
+    
     val coroutineScope = rememberCoroutineScope()
 
     val density = LocalDensity.current
@@ -276,6 +284,7 @@ fun HomeScreen(
             ) {
                 HorizontalPager(
                     state = pagerState,
+                    beyondViewportPageCount = beyondBounds,
                     modifier = Modifier.fillMaxSize()
                 ) { page ->
                     when (page) {

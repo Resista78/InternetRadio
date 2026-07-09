@@ -54,6 +54,24 @@ fun StationCard(
 ) {
     var showMenu by remember { mutableStateOf(false) }
 
+    val gradientBrush = remember {
+        Brush.verticalGradient(
+            colors = listOf(
+                Color.Transparent,
+                Color.Black.copy(alpha = 0.3f)
+            ),
+            startY = 300f
+        )
+    }
+
+    val subtitleText = remember(station.country, station.language) {
+        buildString {
+            if (station.country.isNotBlank()) append(station.country)
+            if (station.country.isNotBlank() && station.language.isNotBlank()) append(" • ")
+            if (station.language.isNotBlank()) append(station.language)
+        }
+    }
+
     Card(
         modifier = modifier
             .aspectRatio(1f)
@@ -84,15 +102,7 @@ fun StationCard(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(
-                                Color.Transparent,
-                                Color.Black.copy(alpha = 0.3f)
-                            ),
-                            startY = 300f
-                        )
-                    )
+                    .background(gradientBrush)
             )
 
             if (isCurrentlyPlaying) {
@@ -165,17 +175,7 @@ fun StationCard(
                     overflow = TextOverflow.Ellipsis,
                 )
                 Text(
-                    text = buildString {
-                        if (station.country.isNotBlank()) {
-                            append(station.country)
-                        }
-                        if (station.country.isNotBlank() && station.language.isNotBlank()) {
-                            append(" • ")
-                        }
-                        if (station.language.isNotBlank()) {
-                            append(station.language)
-                        }
-                    },
+                    text = subtitleText,
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.White.copy(alpha = 0.8f),
                     maxLines = 1,

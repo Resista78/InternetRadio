@@ -45,16 +45,18 @@ fun RecentContent(
     val useFilter by viewModel.useFilter.collectAsStateWithLifecycle()
     val isGridView by viewModel.isGridView.collectAsStateWithLifecycle()
 
+    val isLoading = recentStations == null
     Crossfade(
-        targetState = recentStations,
+        targetState = isLoading,
         label = "RecentContentTransition",
         modifier = modifier.fillMaxSize()
-    ) { currentStations ->
-        if (currentStations == null) {
+    ) { loading ->
+        if (loading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
         } else {
+            val currentStations = recentStations ?: emptyList()
             val gridState = androidx.compose.foundation.lazy.grid.rememberLazyGridState()
             val showScrollToTop by androidx.compose.runtime.remember { androidx.compose.runtime.derivedStateOf { gridState.firstVisibleItemIndex > 0 } }
             val coroutineScope = androidx.compose.runtime.rememberCoroutineScope()
