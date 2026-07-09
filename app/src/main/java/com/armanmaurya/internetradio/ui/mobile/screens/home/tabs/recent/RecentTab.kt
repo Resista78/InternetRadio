@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.ViewList
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.material.icons.filled.ArrowUpward
 import kotlinx.coroutines.launch
@@ -38,10 +39,15 @@ fun RecentContent(
     contentPadding: PaddingValues = PaddingValues(0.dp),
     viewModel: RecentViewModel = hiltViewModel(),
     playingStationUuid: String? = null,
-    isPlaybackActive: Boolean = false
+    isPlaybackActive: Boolean = false,
+    searchQuery: String = ""
 ) {
     val recentStations by viewModel.recentStations.collectAsStateWithLifecycle()
     val libraryStationUuids by viewModel.libraryStationUuids.collectAsStateWithLifecycle()
+
+    LaunchedEffect(searchQuery) {
+        viewModel.onSearchQueryChange(searchQuery)
+    }
     val useFilter by viewModel.useFilter.collectAsStateWithLifecycle()
     val isGridView by viewModel.isGridView.collectAsStateWithLifecycle()
 

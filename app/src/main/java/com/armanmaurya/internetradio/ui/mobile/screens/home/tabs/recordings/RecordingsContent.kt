@@ -34,7 +34,7 @@ import com.armanmaurya.internetradio.ui.mobile.components.RecordingFileItem
 
 @Composable
 fun RecordingsContent(
-    viewModel: RecordingsViewModel,
+    viewModel: RecordingsViewModel = androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel(),
     contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
     val folders by viewModel.folders.collectAsStateWithLifecycle()

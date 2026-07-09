@@ -141,8 +141,10 @@ class PlayerController @Inject constructor(
 
         override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
             val title = mediaMetadata.title?.toString() ?: mediaMetadata.displayTitle?.toString()
-            if (title != null && title != activeStation?.name) {
+            if (title != null && title.isNotBlank() && title != activeStation?.name) {
                 _playbackState.update { it.copy(currentTrack = title) }
+            } else {
+                _playbackState.update { it.copy(currentTrack = null) }
             }
         }
     }
@@ -227,7 +229,7 @@ class PlayerController @Inject constructor(
         }
 
         activeStation = station
-        _playbackState.update { it.copy(currentStation = station) }
+        _playbackState.update { it.copy(currentStation = station, currentTrack = null) }
         
         val mediaItems = stations.map { it.toMediaItem() }
         player.setMediaItems(mediaItems, startIndex, 0L)

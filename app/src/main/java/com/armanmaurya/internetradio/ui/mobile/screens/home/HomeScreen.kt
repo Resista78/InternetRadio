@@ -78,10 +78,7 @@ fun HomeScreen(
     contentPadding: PaddingValues = PaddingValues(0.dp),
     viewModel: HomeViewModel = hiltViewModel(),
     browseViewModel: BrowseViewModel = hiltViewModel(),
-    playerViewModel: PlayerViewModel = hiltViewModel(),
-    libraryViewModel: LibraryViewModel = hiltViewModel(),
-    recentViewModel: RecentViewModel = hiltViewModel(),
-    recordingsViewModel: com.armanmaurya.internetradio.ui.shared.viewmodels.RecordingsViewModel = hiltViewModel()
+    playerViewModel: PlayerViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val browseUiState by browseViewModel.uiState.collectAsStateWithLifecycle()
@@ -126,8 +123,6 @@ fun HomeScreen(
     // Forward search query from HomeViewModel → ViewModels
     LaunchedEffect(uiState.searchQuery) {
         browseViewModel.onSearchQueryChange(uiState.searchQuery)
-        recentViewModel.onSearchQueryChange(uiState.searchQuery)
-        libraryViewModel.onSearchQueryChange(uiState.searchQuery)
     }
 
     // Keep pager in sync with tab state from HomeViewModel (tab click)
@@ -299,17 +294,18 @@ fun HomeScreen(
                             onStationClick = { stations, index, source -> playerViewModel.play(stations, index, source) },
                             contentPadding = contentPadding,
                             playingStationUuid = playingStationUuid,
-                            isPlaybackActive = isPlaybackActive
+                            isPlaybackActive = isPlaybackActive,
+                            searchQuery = uiState.searchQuery
                         )
                         2 -> LibraryContent(
                             onStationClick = { stations, index, source -> playerViewModel.play(stations, index, source) },
                             onEditStation = { stationUuid -> onEditStation(stationUuid) },
                             contentPadding = contentPadding,
                             playingStationUuid = playingStationUuid,
-                            isPlaybackActive = isPlaybackActive
+                            isPlaybackActive = isPlaybackActive,
+                            searchQuery = uiState.searchQuery
                         )
                         3 -> com.armanmaurya.internetradio.ui.mobile.screens.home.tabs.recordings.RecordingsContent(
-                            viewModel = recordingsViewModel,
                             contentPadding = contentPadding
                         )
                     }
