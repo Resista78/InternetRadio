@@ -7,6 +7,8 @@ import org.xmlpull.v1.XmlPullParser
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -109,6 +111,32 @@ fun SettingsScreen(
                 onAboutClick = onAboutClick,
                 onCheckUpdatesClick = onCheckUpdatesClick
             )
+
+            val context = LocalContext.current
+            val packageInfo = remember {
+                try {
+                    context.packageManager.getPackageInfo(context.packageName, 0)
+                } catch (e: Exception) {
+                    null
+                }
+            }
+            val versionName = packageInfo?.versionName ?: "Unknown"
+            val versionCode = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+                packageInfo?.longVersionCode?.toString() ?: "0"
+            } else {
+                @Suppress("DEPRECATION")
+                packageInfo?.versionCode?.toString() ?: "0"
+            }
+
+            androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(32.dp))
+            Text(
+                text = "v$versionName ($versionCode)",
+                style = androidx.compose.material3.MaterialTheme.typography.labelMedium,
+                color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            )
+            androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }

@@ -41,13 +41,18 @@ fun UpdateBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
         dragHandle = null,
-        modifier = Modifier.border(1.dp, Color.Black, RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
+        containerColor = Color.Transparent
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(24.dp)
+        androidx.compose.material3.Surface(
+            modifier = Modifier.fillMaxWidth().border(1.dp, Color.Black, RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)),
+            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+            color = androidx.compose.material3.BottomSheetDefaults.ContainerColor
         ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp)
+            ) {
             Text(
                 text = "New Update Available",
                 style = MaterialTheme.typography.headlineSmall,
@@ -95,6 +100,7 @@ fun UpdateBottomSheet(
                 ) {
                     Text("Update Now")
                 }
+            }
             }
         }
     }
