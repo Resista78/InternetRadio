@@ -38,7 +38,7 @@ object AutoBrowseTree {
     const val ROOT = "AUTO_ROOT"
     const val BROWSE = "AUTO_BROWSE"
     const val RECENT = "AUTO_RECENT"
-    const val FAVORITES = "AUTO_FAVORITES"
+    const val LIBRARY = "AUTO_LIBRARY"
 }
 
 
@@ -52,7 +52,7 @@ class AutoMediaLibraryCallback @Inject constructor(
 
     companion object {
         /** Custom command sent when the user taps the heart button in Android Auto. */
-        val COMMAND_TOGGLE_FAVORITE = SessionCommand("TOGGLE_FAVORITE", Bundle.EMPTY)
+        val COMMAND_TOGGLE_LIBRARY = SessionCommand("TOGGLE_LIBRARY", Bundle.EMPTY)
     }
 
     /** Background scope used for async search network calls and DB operations. */
@@ -94,15 +94,15 @@ class AutoMediaLibraryCallback @Inject constructor(
             runBlocking { libraryRepository.isStationInLibraryDirect(it.stationUuid) }
         } ?: false
 
-        // Grant the custom favourite command in addition to all default commands
+        // Grant the custom library command in addition to all default commands
         val sessionCommands = MediaSession.ConnectionResult.DEFAULT_SESSION_AND_LIBRARY_COMMANDS
             .buildUpon()
-            .add(COMMAND_TOGGLE_FAVORITE)
+            .add(COMMAND_TOGGLE_LIBRARY)
             .build()
 
         return MediaSession.ConnectionResult.AcceptedResultBuilder(session)
             .setAvailableSessionCommands(sessionCommands)
-            .setCustomLayout(buildFavoriteButton(isFav))
+            .setCustomLayout(buildLibraryButton(isFav))
             .build()
     }
 
@@ -114,7 +114,7 @@ class AutoMediaLibraryCallback @Inject constructor(
         params: LibraryParams?,
     ): ListenableFuture<LibraryResult<MediaItem>> {
         val isSuggested = params?.isSuggested == true
-        val rootId = if (isSuggested) AutoBrowseTree.FAVORITES else AutoBrowseTree.ROOT
+        val rootId = if (isSuggested) AutoBrowseTree.LIBRARY else AutoBrowseTree.ROOT
         val rootTitle = if (isSuggested) "For You" else "Internet Radio"
 
         val rootItem = MediaItem.Builder()
@@ -165,7 +165,7 @@ class AutoMediaLibraryCallback @Inject constructor(
             AutoBrowseTree.ROOT -> rootChildren()
             AutoBrowseTree.BROWSE -> browseChildren()
             AutoBrowseTree.RECENT -> recentChildren()
-            AutoBrowseTree.FAVORITES -> favoritesChildren()
+            AutoBrowseTree.LIBRARY -> libraryChildren()
             else -> emptyList()
         }
         return Futures.immediateFuture(
@@ -173,7 +173,7 @@ class AutoMediaLibraryCallback @Inject constructor(
         )
     }
 
-    // ─── Custom command: Favourite toggle ─────────────────────────────────────────
+    // ─── Custom command: Library toggle ─────────────────────────────────────────
 
     @OptIn(UnstableApi::class)
     override fun onCustomCommand(
@@ -182,7 +182,7 @@ class AutoMediaLibraryCallback @Inject constructor(
         customCommand: SessionCommand,
         args: Bundle,
     ): ListenableFuture<SessionResult> {
-        if (customCommand.customAction != COMMAND_TOGGLE_FAVORITE.customAction) {
+        if (customCommand.customAction != COMMAND_TOGGLE_LIBRARY.customAction) {
             return super.onCustomCommand(session, controller, customCommand, args)
         }
         val uuid = session.player.currentMediaItem?.mediaId
@@ -194,33 +194,33 @@ class AutoMediaLibraryCallback @Inject constructor(
             if (wasFav) libraryRepository.removeStationFromLibrary(station.stationUuid)
             else libraryRepository.addStationToLibrary(station)
             // Push updated icon to every connected controller
-            session.setCustomLayout(buildFavoriteButton(!wasFav))
+            session.setCustomLayout(buildLibraryButton(!wasFav))
         }
         return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
     }
 
     /**
      * Called by [PlaybackService] whenever the playing station changes.
-     * Looks up the new station's favourite status and refreshes the heart icon.
+     * Looks up the new station's library status and refreshes the heart icon.
      */
-    fun updateFavoriteButton(mediaId: String?) {
+    fun updateLibraryButton(mediaId: String?) {
         val session = activeSession ?: return
         searchScope.launch {
             val isFav = mediaId?.let { libraryRepository.isStationInLibraryDirect(it) } ?: false
-            session.setCustomLayout(buildFavoriteButton(isFav))
+            session.setCustomLayout(buildLibraryButton(isFav))
         }
     }
 
     /** Builds a one-item custom layout list with the correct heart icon. */
     @Suppress("DEPRECATION") // CommandButton.Builder() no-arg is safe pre-1.4 fallback
-    private fun buildFavoriteButton(isFavorite: Boolean): List<CommandButton> = listOf(
+    private fun buildLibraryButton(isFavorite: Boolean): List<CommandButton> = listOf(
         CommandButton.Builder()
-            .setDisplayName(if (isFavorite) "Remove from Favourites" else "Add to Favourites")
+            .setDisplayName(if (isFavorite) "Remove from Library" else "Add to Library")
             .setIconResId(
                 if (isFavorite) R.drawable.ic_auto_favorite
                 else R.drawable.ic_auto_favorite_border
             )
-            .setSessionCommand(COMMAND_TOGGLE_FAVORITE)
+            .setSessionCommand(COMMAND_TOGGLE_LIBRARY)
             .build()
     )
 
@@ -297,9 +297,9 @@ class AutoMediaLibraryCallback @Inject constructor(
 
     private fun rootChildren(): List<MediaItem> = listOf(
         buildTabItem(
-            id = AutoBrowseTree.FAVORITES,
-            title = "Favorites",
-            subtitle = "Your favourite stations",
+            id = AutoBrowseTree.LIBRARY,
+            title = "Library",
+            subtitle = "Your library stations",
         ),
         buildTabItem(
             id = AutoBrowseTree.BROWSE,
@@ -343,7 +343,7 @@ class AutoMediaLibraryCallback @Inject constructor(
         recentRepository.getAllRecent().first().map { it.toMediaItem() }
     }
 
-    private fun favoritesChildren(): List<MediaItem> = runBlocking {
+    private fun libraryChildren(): List<MediaItem> = runBlocking {
         libraryRepository.getAllStations().first().map { it.toMediaItem() }
     }
 
@@ -367,7 +367,7 @@ class AutoMediaLibraryCallback @Inject constructor(
 
     /**
      * Searches all available sources for a station matching [uuid].
-     * Checked in order: recents → favorites → top-stations cache.
+     * Checked in order: recents → library → top-stations cache.
      */
     private fun findStationByUuid(uuid: String): RadioStation? = runBlocking {
         recentRepository.getStationById(uuid)

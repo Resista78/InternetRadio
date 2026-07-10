@@ -50,7 +50,7 @@ class PlaybackService : MediaLibraryService() {
      */
     private val stationChangeListener = object : Player.Listener {
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-            autoCallback.updateFavoriteButton(mediaItem?.mediaId)
+            autoCallback.updateLibraryButton(mediaItem?.mediaId)
         }
 
         override fun onMetadata(metadata: androidx.media3.common.Metadata) {
