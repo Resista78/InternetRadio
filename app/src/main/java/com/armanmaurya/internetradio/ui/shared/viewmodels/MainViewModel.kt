@@ -38,8 +38,8 @@ class MainViewModel @Inject constructor(
                         _updateAvailable.value = release
                         hasUpdate = true
                     }
+                    settingsRepository.setLastUpdateCheckTime(currentTime)
                 }
-                settingsRepository.setLastUpdateCheckTime(currentTime)
                 onResult?.invoke(hasUpdate)
             } else {
                 onResult?.invoke(false)

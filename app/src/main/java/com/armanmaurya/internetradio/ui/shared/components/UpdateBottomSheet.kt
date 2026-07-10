@@ -22,6 +22,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.Color
 import com.armanmaurya.internetradio.data.model.GithubRelease
 import dev.jeziellago.compose.markdowntext.MarkdownText
 
@@ -37,7 +40,8 @@ fun UpdateBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        dragHandle = null
+        dragHandle = null,
+        modifier = Modifier.border(1.dp, Color.Black, RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
     ) {
         Column(
             modifier = Modifier
