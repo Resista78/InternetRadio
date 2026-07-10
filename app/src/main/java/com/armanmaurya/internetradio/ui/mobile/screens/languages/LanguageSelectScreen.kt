@@ -76,6 +76,7 @@ fun LanguageSelectScreen(
     }
 
     Scaffold(
+        modifier = Modifier.padding(bottom = contentPadding.calculateBottomPadding()),
         topBar = {
             TopAppBar(
                 title = {
@@ -131,7 +132,9 @@ fun LanguageSelectScreen(
         }
     ) { innerPadding ->
         Box(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize()
         ) {
             if (uiState.isLoading) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -144,10 +147,7 @@ fun LanguageSelectScreen(
             } else {
                 LazyColumn(
                     state = listState,
-                    contentPadding = PaddingValues(
-                        top = innerPadding.calculateTopPadding(),
-                        bottom = innerPadding.calculateBottomPadding() + contentPadding.calculateBottomPadding()
-                    )
+                    contentPadding = PaddingValues(0.dp)
                 ) {
                     item(key = "all_languages") {
                         LanguageItem(

@@ -22,9 +22,12 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+
 @Composable
 fun AppNavHost(
     navController: NavHostController,
+    widthSizeClass: WindowWidthSizeClass,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp),
     onCheckUpdates: () -> Unit = {}
@@ -62,6 +65,7 @@ fun AppNavHost(
     ) {
         composable(AppDestination.Discover.route) {
             HomeScreen(
+                widthSizeClass = widthSizeClass,
                 viewModel = discoverViewModel,
                 onSettingsClick = { navController.navigate(AppDestination.Settings.route) },
                 onCountryClick = { 

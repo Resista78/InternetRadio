@@ -13,6 +13,7 @@ import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -87,6 +88,7 @@ fun Modifier.collapseHeight(progress: Float) = this.layout { measurable, constra
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun PlayerSheetContent(
+    isWidescreen: Boolean,
     playbackState: PlaybackState,
     isFavorite: Boolean,
     trackHistory: List<TrackHistoryEntity> = emptyList(),
@@ -233,24 +235,38 @@ fun PlayerSheetContent(
             }
         // --- Thumbnail Calculation ---
         val miniSize = 48.dp
-        val baseExpandedSize = (screenWidth - 32.dp).coerceAtMost(400.dp)
-        val historySize = 48.dp // Match exact collapsed size
+        
+        val baseExpandedSize = if (isWidescreen) {
+            (screenHeight * 0.6f).coerceAtMost(screenWidth * 0.45f)
+        } else {
+            screenWidth - 32.dp
+        }
+        val historySize = if (isWidescreen) baseExpandedSize else 48.dp // Match exact collapsed size
         val actualExpandedSize = lerp(baseExpandedSize, historySize, historyProgress)
         
         val currentSize = lerp(miniSize, actualExpandedSize, progress)
         
+        val layoutDirection = androidx.compose.ui.platform.LocalLayoutDirection.current
+        val cutoutLeftPadding = WindowInsets.displayCutout.asPaddingValues().calculateLeftPadding(layoutDirection)
+        val cutoutRightPadding = WindowInsets.displayCutout.asPaddingValues().calculateRightPadding(layoutDirection)
+
         // Mini position (relative to sheet)
-        val miniX = 16.dp
+        val miniX = 16.dp + cutoutLeftPadding
         val miniY = 12.dp // (72 - 48) / 2 - perfectly centered in 72.dp row
         
         // Expanded position
-        val baseExpandedX = (screenWidth - baseExpandedSize) / 2
-        val historyExpandedX = 24.dp // Move to left edge of column
+        val baseExpandedX = if (isWidescreen) 32.dp + cutoutLeftPadding else (screenWidth - baseExpandedSize) / 2
+        val historyExpandedX = if (isWidescreen) baseExpandedX else 24.dp + cutoutLeftPadding // Move to left edge of column
         val actualExpandedX = lerp(baseExpandedX, historyExpandedX, historyProgress)
         
         val statusBarPadding = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
-        val baseExpandedY = 84.dp + statusBarPadding
-        val historyExpandedY = 22.dp + statusBarPadding // Shifted further down
+        val baseExpandedY = if (isWidescreen) {
+            val availableHeight = screenHeight - statusBarPadding
+            statusBarPadding + (availableHeight - baseExpandedSize) / 2
+        } else {
+            84.dp + statusBarPadding
+        }
+        val historyExpandedY = if (isWidescreen) baseExpandedY else 22.dp + statusBarPadding // Shifted further down
         val actualExpandedY = lerp(baseExpandedY, historyExpandedY, historyProgress)
         
         val currentX = lerp(miniX, actualExpandedX, progress)
@@ -281,12 +297,12 @@ fun PlayerSheetContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(72.dp)
-                    .padding(horizontal = 16.dp)
+                    .padding(start = 16.dp, end = 16.dp + cutoutRightPadding)
                     .alpha(1f - (progress * 5f).coerceIn(0f, 1f)),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // Space for the moving thumbnail
-                Spacer(modifier = Modifier.width(miniSize + 12.dp))
+                Spacer(modifier = Modifier.width(miniSize + 12.dp + cutoutLeftPadding))
 
                 Column(
                     modifier = Modifier.weight(1f),
@@ -365,6 +381,7 @@ fun PlayerSheetContent(
                     .fillMaxSize()
                     .statusBarsPadding()
                     .windowInsetsPadding(WindowInsets.navigationBars)
+                    .windowInsetsPadding(WindowInsets.displayCutout)
                     .alpha((progress - 0.2f).coerceIn(0f, 0.8f) * 1.25f),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -440,24 +457,38 @@ fun PlayerSheetContent(
                     }
                 }
 
-                // Thumbnail Placeholder and Mini Controls
-                Box(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.CenterEnd
-                ) {
-                    // Placeholder for the moving thumbnail
-                    Spacer(modifier = Modifier
-                        .fillMaxWidth()
-                        .height(
-                            lerp(
-                                84.dp + baseExpandedSize - 20.dp,
-                                72.dp, // Matches Row height
-                                historyProgress
-                            )
-                        )
-                    )
+                val contentModifier = if (isWidescreen) {
+                    Modifier.fillMaxSize().padding(start = baseExpandedSize + 48.dp)
+                } else {
+                    Modifier.fillMaxSize()
+                }
 
-                    // Mini controls when history is expanded
+                Column(
+                    modifier = contentModifier,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    // Thumbnail Placeholder and Mini Controls
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.CenterEnd
+                    ) {
+                        // Placeholder for the moving thumbnail
+                        if (!isWidescreen) {
+                            Spacer(modifier = Modifier
+                                .fillMaxWidth()
+                                .height(
+                                    lerp(
+                                        84.dp + baseExpandedSize - 20.dp,
+                                        72.dp, // Matches Row height
+                                        historyProgress
+                                    )
+                                )
+                            )
+                        } else {
+                            Spacer(modifier = Modifier.height(lerp(16.dp, 72.dp, historyProgress)))
+                        }
+    
+                        // Mini controls when history is expanded
                     if (historyProgress > 0f) {
                         Row(
                             modifier = Modifier
@@ -466,8 +497,8 @@ fun PlayerSheetContent(
                                 .alpha(historyProgress),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            // Space for the moving thumbnail: 24dp offset + 48dp size + 12dp gap = 84dp
-                            Spacer(modifier = Modifier.width(84.dp))
+                            // Space for the moving thumbnail (only on mobile)
+                            Spacer(modifier = Modifier.width(if (isWidescreen) 16.dp else 84.dp))
 
                             Column(
                                 modifier = Modifier.weight(1f),
@@ -529,15 +560,22 @@ fun PlayerSheetContent(
                     }
                 }
 
-                // Main controls that fade out and collapse
+                // Scrollable Player UI wrapper
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .collapseHeight(historyProgress)
-                        .alpha(1f - historyProgress),
-                    horizontalAlignment = Alignment.Start
+                        .weight((1f - historyProgress).coerceAtLeast(0.001f))
+                        .alpha(1f - historyProgress)
+                        .verticalScroll(rememberScrollState()),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
                 ) {
-                    Row(
+                    // Main controls content
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.Start
+                    ) {
+                        Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
@@ -783,17 +821,15 @@ fun PlayerSheetContent(
                         }
                     }
                     */
-                }
+                } // End of Main controls column
 
-                // Spacer above controls — takes half the remaining space
-                val halfWeight = (1f - historyProgress) / 2f
-                if (halfWeight > 0.01f) {
-                    Spacer(modifier = Modifier.weight(halfWeight))
-                }
+                // Spacer above controls
+                Spacer(modifier = Modifier.height(32.dp))
 
                 // Controls Row
                 Row(
                     modifier = Modifier
+                        .widthIn(max = 480.dp)
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp)
                         .padding(bottom = 16.dp)
@@ -892,10 +928,9 @@ fun PlayerSheetContent(
                     }
                 }
 
-                // Spacer below controls — takes the other half of the remaining space
-                if (halfWeight > 0.01f) {
-                    Spacer(modifier = Modifier.weight(halfWeight))
-                }
+                // Spacer below controls
+                Spacer(modifier = Modifier.height(32.dp))
+                } // End of Scrollable Player UI wrapper
 
                 // Bottom Tabs (sits naturally below everything else, moves up as above content collapses)
                 Row(
@@ -1571,6 +1606,7 @@ fun PlayerSheetContent(
                         }
                     }
                 }
+                }
             }
         }
 
@@ -1605,6 +1641,7 @@ fun PlayerSheetContent(
                                 },
                                 clipInOverlayDuringTransition = OverlayClip(RoundedCornerShape(28.dp))
                             )
+                            .widthIn(max = 480.dp)
                             .fillMaxWidth(0.88f)
                             .background(
                                 color = MaterialTheme.colorScheme.surfaceVariant,

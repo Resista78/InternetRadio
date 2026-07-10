@@ -11,6 +11,13 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.background
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SheetValue
@@ -54,7 +61,7 @@ class MainActivity : AppCompatActivity() {
     @Inject
     lateinit var settingsRepository: SettingsRepository
 
-    @OptIn(ExperimentalMaterial3Api::class)
+    @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         val uiModeManager = getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
         if (uiModeManager.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION) {
@@ -132,9 +139,33 @@ class MainActivity : AppCompatActivity() {
                 val bottomInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
                 val sheetPeekHeight = if (playbackState.currentStation != null) 72.dp + bottomInset else 0.dp
 
+                val onCheckUpdates: () -> Unit = {
+                    runOnUiThread {
+                        android.widget.Toast.makeText(this@MainActivity, "Checking for updates...", android.widget.Toast.LENGTH_SHORT).show()
+                    }
+                    val vName = try {
+                        packageManager.getPackageInfo(packageName, 0).versionName ?: "0.0.0"
+                    } catch (e: Exception) {
+                        "0.0.0"
+                    }
+                    mainViewModel.checkForUpdates(vName, force = true) { hasUpdate ->
+                        if (!hasUpdate) {
+                            runOnUiThread {
+                                android.widget.Toast.makeText(this@MainActivity, "No update available", android.widget.Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+                }
+
+                val windowSizeClass = calculateWindowSizeClass(this@MainActivity)
+                val widthSizeClass = windowSizeClass.widthSizeClass
+                val isExpanded = widthSizeClass == WindowWidthSizeClass.Expanded
+
+
                 BottomSheetScaffold(
                     scaffoldState = scaffoldState,
                     sheetPeekHeight = sheetPeekHeight,
+                    sheetMaxWidth = androidx.compose.ui.unit.Dp.Unspecified,
                     sheetDragHandle = null,
                     sheetContent = {
                         val configuration = LocalConfiguration.current
@@ -171,6 +202,7 @@ class MainActivity : AppCompatActivity() {
                             val amplitude by playerViewModel.amplitude.collectAsStateWithLifecycle()
 
                             PlayerSheetContent(
+                                isWidescreen = isExpanded,
                                 playbackState = playbackState,
                                 isFavorite = isFavorite,
                                 trackHistory = trackHistory,
@@ -202,25 +234,10 @@ class MainActivity : AppCompatActivity() {
                 ) { innerPadding ->
                     AppNavHost(
                         navController = navController,
+                        widthSizeClass = widthSizeClass,
                         contentPadding = innerPadding,
                         modifier = Modifier.fillMaxSize(),
-                        onCheckUpdates = {
-                            runOnUiThread {
-                                android.widget.Toast.makeText(this@MainActivity, "Checking for updates...", android.widget.Toast.LENGTH_SHORT).show()
-                            }
-                            val vName = try {
-                                packageManager.getPackageInfo(packageName, 0).versionName ?: "0.0.0"
-                            } catch (e: Exception) {
-                                "0.0.0"
-                            }
-                            mainViewModel.checkForUpdates(vName, force = true) { hasUpdate ->
-                                if (!hasUpdate) {
-                                    runOnUiThread {
-                                        android.widget.Toast.makeText(this@MainActivity, "No update available", android.widget.Toast.LENGTH_SHORT).show()
-                                    }
-                                }
-                            }
-                        }
+                        onCheckUpdates = onCheckUpdates
                     )
                 }
             }
