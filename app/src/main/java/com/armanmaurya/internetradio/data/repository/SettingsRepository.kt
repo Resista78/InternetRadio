@@ -10,6 +10,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.preferences.preferencesDataStore
 import com.armanmaurya.internetradio.data.model.AppPreferences
+import com.armanmaurya.internetradio.data.model.ConflictStrategy
 import com.armanmaurya.internetradio.ui.shared.theme.AppTheme
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -54,6 +55,7 @@ class SettingsRepository @Inject constructor(
         val AUTO_PLAY_ON_START = booleanPreferencesKey("auto_play_on_start")
         val LAST_UPDATE_CHECK_TIME = androidx.datastore.preferences.core.longPreferencesKey("last_update_check_time")
         val MAX_RETRY_DURATION = androidx.datastore.preferences.core.longPreferencesKey("max_retry_duration")
+        val CONFLICT_STRATEGY = stringPreferencesKey("conflict_strategy")
     }
 
     val appPreferencesFlow: Flow<AppPreferences> = context.dataStore.data
@@ -89,7 +91,9 @@ class SettingsRepository @Inject constructor(
             val autoPlayOnStart = preferences[PreferencesKeys.AUTO_PLAY_ON_START] ?: false
             val lastUpdateCheckTime = preferences[PreferencesKeys.LAST_UPDATE_CHECK_TIME] ?: 0L
             val maxRetryDuration = preferences[PreferencesKeys.MAX_RETRY_DURATION] ?: 300_000L
-            
+            val conflictStrategyName = preferences[PreferencesKeys.CONFLICT_STRATEGY]
+            val conflictStrategy = ConflictStrategy.entries.find { it.name == conflictStrategyName } ?: ConflictStrategy.SKIP
+
             AppPreferences(
                 themeMode = themeMode, 
                 useDynamicColor = useDynamicColor, 
@@ -112,7 +116,8 @@ class SettingsRepository @Inject constructor(
                 defaultTab = defaultTab,
                 autoPlayOnStart = autoPlayOnStart,
                 lastUpdateCheckTime = lastUpdateCheckTime,
-                maxRetryDuration = maxRetryDuration
+                maxRetryDuration = maxRetryDuration,
+                conflictStrategy = conflictStrategy
             )
         }
 
@@ -253,6 +258,12 @@ class SettingsRepository @Inject constructor(
     suspend fun setMaxRetryDuration(durationInMillis: Long) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.MAX_RETRY_DURATION] = durationInMillis
+        }
+    }
+
+    suspend fun setConflictStrategy(strategy: ConflictStrategy) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.CONFLICT_STRATEGY] = strategy.name
         }
     }
 }

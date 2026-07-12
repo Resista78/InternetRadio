@@ -56,7 +56,7 @@ fun LibraryStationEntity.toDomain() = RadioStation(
     isCustom = isCustom
 )
 
-fun RadioStation.toLibraryEntity(isCustom: Boolean = false) = LibraryStationEntity(
+fun RadioStation.toLibraryEntity(isCustom: Boolean = this.isCustom) = LibraryStationEntity(
     stationUuid = stationUuid,
     name = name,
     url = url,

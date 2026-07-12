@@ -2,6 +2,7 @@ package com.armanmaurya.internetradio.ui.mobile.screens.settings.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -17,7 +18,8 @@ import androidx.compose.ui.unit.dp
 fun OptionItem(
     label: String,
     isSelected: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    subtitle: String? = null
 ) {
     Row(
         modifier = Modifier
@@ -31,6 +33,15 @@ fun OptionItem(
             selected = isSelected,
             onClick = onClick
         )
-        Text(text = label, style = MaterialTheme.typography.bodyMedium)
+        Column {
+            Text(text = label, style = MaterialTheme.typography.bodyMedium)
+            if (subtitle != null) {
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
     }
 }

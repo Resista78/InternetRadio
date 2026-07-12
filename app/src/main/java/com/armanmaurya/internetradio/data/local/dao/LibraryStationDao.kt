@@ -15,6 +15,9 @@ interface LibraryStationDao {
     @Query("SELECT * FROM library_stations ORDER BY addedAt DESC")
     fun getAllStations(): Flow<List<LibraryStationEntity>>
 
+    @Query("SELECT * FROM library_stations ORDER BY addedAt DESC")
+    suspend fun getAllStationEntities(): List<LibraryStationEntity>
+
     @Query("SELECT EXISTS(SELECT 1 FROM library_stations WHERE stationUuid = :stationUuid)")
     fun isStationInLibrary(stationUuid: String): Flow<Int>
 

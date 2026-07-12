@@ -82,4 +82,18 @@ class LibraryRepository @Inject constructor(
     suspend fun removeStationFromLibrary(stationUuid: String) {
         libraryStationDao.deleteStationById(stationUuid)
     }
+
+    // --- Backup & Restore ---
+
+    suspend fun getAllStationEntities(): List<LibraryStationEntity> {
+        return libraryStationDao.getAllStationEntities()
+    }
+
+    suspend fun getEntityById(stationUuid: String): LibraryStationEntity? {
+        return libraryStationDao.getStationById(stationUuid)
+    }
+
+    suspend fun insertEntity(entity: LibraryStationEntity) {
+        libraryStationDao.insertStation(entity)
+    }
 }

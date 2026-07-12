@@ -18,3 +18,8 @@
 
 # Keep data transfer objects for Gson to prevent obfuscation of field names
 -keep class com.armanmaurya.internetradio.data.remote.dto.** { *; }
+
+# Keep local entity and backup model classes used by Gson for export/import
+-keep class com.armanmaurya.internetradio.data.local.entity.LibraryStationEntity { *; }
+-keep class com.armanmaurya.internetradio.data.model.LibraryBackup { *; }
+-keep class com.armanmaurya.internetradio.data.model.ConflictStrategy { *; }

@@ -3,6 +3,9 @@ package com.armanmaurya.internetradio.ui.mobile.screens.settings
 
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatDelegate
 import org.xmlpull.v1.XmlPullParser
 import androidx.compose.foundation.layout.Column
@@ -18,8 +21,11 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Brightness4
 import androidx.compose.material.icons.filled.Contrast
+import androidx.compose.material.icons.filled.FileDownload
+import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.automirrored.filled.CallMerge
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.StarRate
 import androidx.compose.material.icons.filled.Translate
@@ -36,6 +42,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -48,6 +55,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.armanmaurya.internetradio.R
 import com.armanmaurya.internetradio.data.model.AppPreferences
+import com.armanmaurya.internetradio.data.model.ConflictStrategy
 import com.armanmaurya.internetradio.ui.shared.viewmodels.SettingsViewModel
 import com.armanmaurya.internetradio.ui.mobile.screens.settings.components.ExpandableItem
 import com.armanmaurya.internetradio.ui.mobile.screens.settings.components.Item
@@ -74,6 +82,27 @@ fun SettingsScreen(
     var showHistoryLimitDialog by remember { mutableStateOf(false) }
     var defaultTabExpanded by remember { mutableStateOf(false) }
     var maxRetryDurationExpanded by remember { mutableStateOf(false) }
+    var backupConflictExpanded by remember { mutableStateOf(false) }
+
+    // Toast feedback for backup/restore operations
+    val context = LocalContext.current
+    LaunchedEffect(Unit) {
+        viewModel.backupResult.collect { message ->
+            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+        }
+    }
+
+    // Activity result launchers for file picker
+    val exportLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/json")
+    ) { uri ->
+        uri?.let { viewModel.exportLibrary(context, it) }
+    }
+    val importLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        uri?.let { viewModel.importLibrary(context, it) }
+    }
 
     Scaffold(
         modifier = Modifier.padding(bottom = contentPadding.calculateBottomPadding()),
@@ -101,9 +130,6 @@ fun SettingsScreen(
                 languageExpanded = languageExpanded,
                 onToggleLanguageExpanded = { languageExpanded = !languageExpanded },
                 onSetLanguage = viewModel::setAppLanguage,
-                showHistoryLimitDialog = showHistoryLimitDialog,
-                onToggleHistoryLimitDialog = { showHistoryLimitDialog = !showHistoryLimitDialog },
-                onSetHistoryLimit = viewModel::setTrackHistoryLimit,
                 defaultTabExpanded = defaultTabExpanded,
                 onToggleDefaultTabExpanded = { defaultTabExpanded = !defaultTabExpanded },
                 onSetDefaultTab = viewModel::setDefaultTab
@@ -111,9 +137,20 @@ fun SettingsScreen(
             PlayerSection(
                 uiState = uiState,
                 onSetAutoPlayOnStart = viewModel::setAutoPlayOnStart,
+                showHistoryLimitDialog = showHistoryLimitDialog,
+                onToggleHistoryLimitDialog = { showHistoryLimitDialog = !showHistoryLimitDialog },
+                onSetHistoryLimit = viewModel::setTrackHistoryLimit,
                 maxRetryDurationExpanded = maxRetryDurationExpanded,
                 onToggleMaxRetryDurationExpanded = { maxRetryDurationExpanded = !maxRetryDurationExpanded },
                 onSetMaxRetryDuration = viewModel::setMaxRetryDuration
+            )
+            BackupSection(
+                uiState = uiState,
+                conflictExpanded = backupConflictExpanded,
+                onToggleConflictExpanded = { backupConflictExpanded = !backupConflictExpanded },
+                onSetConflictStrategy = viewModel::setConflictStrategy,
+                onExport = { exportLauncher.launch("stations.json") },
+                onImport = { importLauncher.launch(arrayOf("application/json")) }
             )
             AboutSection(
                 onAboutClick = onAboutClick,
@@ -224,9 +261,6 @@ private fun GeneralSection(
     languageExpanded: Boolean,
     onToggleLanguageExpanded: () -> Unit,
     onSetLanguage: (String) -> Unit,
-    showHistoryLimitDialog: Boolean,
-    onToggleHistoryLimitDialog: () -> Unit,
-    onSetHistoryLimit: (Int) -> Unit,
     defaultTabExpanded: Boolean,
     onToggleDefaultTabExpanded: () -> Unit,
     onSetDefaultTab: (Int) -> Unit
@@ -262,13 +296,60 @@ private fun GeneralSection(
             subtitle = tabs.getOrNull(uiState.defaultTab) ?: stringResource(R.string.home_tab_browse),
             isExpanded = defaultTabExpanded,
             onToggle = onToggleDefaultTabExpanded,
-            icon = Icons.Default.StarRate // or some other icon
+            icon = Icons.Default.StarRate
         ) {
             tabs.forEachIndexed { index, name ->
                 OptionItem(
                     label = name,
                     isSelected = uiState.defaultTab == index,
                     onClick = { onSetDefaultTab(index) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun PlayerSection(
+    uiState: AppPreferences,
+    onSetAutoPlayOnStart: (Boolean) -> Unit,
+    showHistoryLimitDialog: Boolean,
+    onToggleHistoryLimitDialog: () -> Unit,
+    onSetHistoryLimit: (Int) -> Unit,
+    maxRetryDurationExpanded: Boolean,
+    onToggleMaxRetryDurationExpanded: () -> Unit,
+    onSetMaxRetryDuration: (Long) -> Unit
+) {
+    Section(title = stringResource(R.string.settings_player_section)) {
+        ToggleItem(
+            title = stringResource(R.string.settings_auto_play),
+            subtitle = stringResource(R.string.settings_auto_play_desc),
+            isEnabled = uiState.autoPlayOnStart,
+            onToggle = onSetAutoPlayOnStart,
+            icon = Icons.Default.PlayArrow
+        )
+
+        val retryOptions = listOf(
+            60_000L to stringResource(R.string.settings_retry_1_min),
+            300_000L to stringResource(R.string.settings_retry_5_min),
+            900_000L to stringResource(R.string.settings_retry_15_min),
+            1_800_000L to stringResource(R.string.settings_retry_30_min),
+            -1L to stringResource(R.string.settings_retry_indefinitely)
+        )
+        val currentRetryOption = retryOptions.find { it.first == uiState.maxRetryDuration }?.second ?: stringResource(R.string.settings_retry_5_min)
+
+        ExpandableItem(
+            title = stringResource(R.string.settings_max_retry_duration),
+            subtitle = currentRetryOption,
+            isExpanded = maxRetryDurationExpanded,
+            onToggle = onToggleMaxRetryDurationExpanded,
+            icon = Icons.Default.Update
+        ) {
+            retryOptions.forEach { (duration, label) ->
+                OptionItem(
+                    label = label,
+                    isSelected = uiState.maxRetryDuration == duration,
+                    onClick = { onSetMaxRetryDuration(duration) }
                 )
             }
         }
@@ -320,50 +401,6 @@ private fun GeneralSection(
 }
 
 @Composable
-private fun PlayerSection(
-    uiState: AppPreferences,
-    onSetAutoPlayOnStart: (Boolean) -> Unit,
-    maxRetryDurationExpanded: Boolean,
-    onToggleMaxRetryDurationExpanded: () -> Unit,
-    onSetMaxRetryDuration: (Long) -> Unit
-) {
-    Section(title = stringResource(R.string.settings_player_section)) {
-        ToggleItem(
-            title = stringResource(R.string.settings_auto_play),
-            subtitle = stringResource(R.string.settings_auto_play_desc),
-            isEnabled = uiState.autoPlayOnStart,
-            onToggle = onSetAutoPlayOnStart,
-            icon = Icons.Default.PlayArrow
-        )
-
-        val retryOptions = listOf(
-            60_000L to stringResource(R.string.settings_retry_1_min),
-            300_000L to stringResource(R.string.settings_retry_5_min),
-            900_000L to stringResource(R.string.settings_retry_15_min),
-            1_800_000L to stringResource(R.string.settings_retry_30_min),
-            -1L to stringResource(R.string.settings_retry_indefinitely)
-        )
-        val currentRetryOption = retryOptions.find { it.first == uiState.maxRetryDuration }?.second ?: stringResource(R.string.settings_retry_5_min)
-
-        ExpandableItem(
-            title = stringResource(R.string.settings_max_retry_duration),
-            subtitle = currentRetryOption,
-            isExpanded = maxRetryDurationExpanded,
-            onToggle = onToggleMaxRetryDurationExpanded,
-            icon = Icons.Default.Update
-        ) {
-            retryOptions.forEach { (duration, label) ->
-                OptionItem(
-                    label = label,
-                    isSelected = uiState.maxRetryDuration == duration,
-                    onClick = { onSetMaxRetryDuration(duration) }
-                )
-            }
-        }
-    }
-}
-
-@Composable
 private fun AboutSection(
     onAboutClick: () -> Unit,
     onCheckUpdatesClick: () -> Unit
@@ -395,6 +432,61 @@ private fun AboutSection(
             title = stringResource(R.string.settings_check_updates),
             onClick = onCheckUpdatesClick,
             icon = Icons.Default.Update
+        )
+    }
+}
+
+@Composable
+private fun BackupSection(
+    uiState: AppPreferences,
+    conflictExpanded: Boolean,
+    onToggleConflictExpanded: () -> Unit,
+    onSetConflictStrategy: (ConflictStrategy) -> Unit,
+    onExport: () -> Unit,
+    onImport: () -> Unit
+) {
+    val conflictOptions = listOf(
+        ConflictStrategy.SKIP to stringResource(R.string.settings_conflict_skip),
+        ConflictStrategy.OVERWRITE to stringResource(R.string.settings_conflict_overwrite),
+        ConflictStrategy.KEEP_NEWER to stringResource(R.string.settings_conflict_keep_newer)
+    )
+    val currentLabel = conflictOptions.find { it.first == uiState.conflictStrategy }?.second
+        ?: stringResource(R.string.settings_conflict_skip)
+
+    Section(title = stringResource(R.string.settings_backup_section)) {
+        ExpandableItem(
+            title = stringResource(R.string.settings_conflict_title),
+            subtitle = currentLabel,
+            isExpanded = conflictExpanded,
+            onToggle = onToggleConflictExpanded,
+            icon = Icons.AutoMirrored.Filled.CallMerge
+        ) {
+            conflictOptions.forEach { (strategy, label) ->
+                OptionItem(
+                    label = label,
+                    isSelected = uiState.conflictStrategy == strategy,
+                    onClick = { onSetConflictStrategy(strategy) },
+                    subtitle = when (strategy) {
+                        ConflictStrategy.SKIP -> stringResource(R.string.settings_conflict_skip_desc)
+                        ConflictStrategy.OVERWRITE -> stringResource(R.string.settings_conflict_overwrite_desc)
+                        ConflictStrategy.KEEP_NEWER -> stringResource(R.string.settings_conflict_keep_newer_desc)
+                    }
+                )
+            }
+        }
+
+        Item(
+            title = stringResource(R.string.settings_export_title),
+            subtitle = stringResource(R.string.settings_export_subtitle),
+            onClick = onExport,
+            icon = Icons.Default.FileUpload
+        )
+
+        Item(
+            title = stringResource(R.string.settings_import_title),
+            subtitle = stringResource(R.string.settings_import_subtitle),
+            onClick = onImport,
+            icon = Icons.Default.FileDownload
         )
     }
 }
