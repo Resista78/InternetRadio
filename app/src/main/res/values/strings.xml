@@ -60,6 +60,13 @@
     <string name="settings_auto_play">Auto play on start</string>
     <string name="settings_auto_play_desc">Play the last listened station when app starts</string>
     <string name="settings_default_tab">Default Tab on Startup</string>
+    <string name="settings_player_section">Player</string>
+    <string name="settings_max_retry_duration">Maximum retry duration</string>
+    <string name="settings_retry_1_min">1 minute</string>
+    <string name="settings_retry_5_min">5 minutes</string>
+    <string name="settings_retry_15_min">15 minutes</string>
+    <string name="settings_retry_30_min">30 minutes</string>
+    <string name="settings_retry_indefinitely">Indefinitely</string>
     <string name="settings_check_updates">Check for updates</string>
     <string name="settings_rate_review">Rate &amp; Review</string>
     <string name="settings_track_history_limit">Track History Limit</string>
@@ -202,4 +209,6 @@
     <string name="player_no_tracks_played">No tracks played yet</string>
     <string name="player_tab_about">About</string>
     <string name="player_tab_tracks">Tracks</string>
+    <string name="player_retrying_in">Retrying in %1$ds...</string>
+    <string name="player_retrying_connection">Retrying connection...</string>
 </resources>

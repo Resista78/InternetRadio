@@ -31,8 +31,12 @@ class PlayerViewModel @Inject constructor(
     private val stationRepository: com.armanmaurya.internetradio.data.repository.StationRepository,
     private val trackHistoryRepository: TrackHistoryRepository,
     private val recordingManager: RecordingManager,
-    private val recordingRepository: com.armanmaurya.internetradio.data.repository.RecordingRepository
+    private val recordingRepository: com.armanmaurya.internetradio.data.repository.RecordingRepository,
+    retryStateTracker: com.armanmaurya.internetradio.player.RetryStateTracker
 ) : ViewModel() {
+
+    val retryCountdown = retryStateTracker.retryCountdown
+    val retryToastEvent = retryStateTracker.retryToastEvent
 
     val playbackState = playerController.playbackState
 

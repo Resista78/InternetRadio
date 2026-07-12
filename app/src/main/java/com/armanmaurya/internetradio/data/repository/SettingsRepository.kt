@@ -53,6 +53,7 @@ class SettingsRepository @Inject constructor(
         val DEFAULT_TAB = androidx.datastore.preferences.core.intPreferencesKey("default_tab")
         val AUTO_PLAY_ON_START = booleanPreferencesKey("auto_play_on_start")
         val LAST_UPDATE_CHECK_TIME = androidx.datastore.preferences.core.longPreferencesKey("last_update_check_time")
+        val MAX_RETRY_DURATION = androidx.datastore.preferences.core.longPreferencesKey("max_retry_duration")
     }
 
     val appPreferencesFlow: Flow<AppPreferences> = context.dataStore.data
@@ -87,6 +88,7 @@ class SettingsRepository @Inject constructor(
             val defaultTab = preferences[PreferencesKeys.DEFAULT_TAB] ?: 0
             val autoPlayOnStart = preferences[PreferencesKeys.AUTO_PLAY_ON_START] ?: false
             val lastUpdateCheckTime = preferences[PreferencesKeys.LAST_UPDATE_CHECK_TIME] ?: 0L
+            val maxRetryDuration = preferences[PreferencesKeys.MAX_RETRY_DURATION] ?: 300_000L
             
             AppPreferences(
                 themeMode = themeMode, 
@@ -109,7 +111,8 @@ class SettingsRepository @Inject constructor(
                 trackHistoryLimit = trackHistoryLimit,
                 defaultTab = defaultTab,
                 autoPlayOnStart = autoPlayOnStart,
-                lastUpdateCheckTime = lastUpdateCheckTime
+                lastUpdateCheckTime = lastUpdateCheckTime,
+                maxRetryDuration = maxRetryDuration
             )
         }
 
@@ -244,6 +247,12 @@ class SettingsRepository @Inject constructor(
     suspend fun setLastUpdateCheckTime(timeInMillis: Long) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.LAST_UPDATE_CHECK_TIME] = timeInMillis
+        }
+    }
+
+    suspend fun setMaxRetryDuration(durationInMillis: Long) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.MAX_RETRY_DURATION] = durationInMillis
         }
     }
 }

@@ -87,7 +87,7 @@ fun Modifier.collapseHeight(progress: Float) = this.layout { measurable, constra
     }
 }
 
-@OptIn(ExperimentalSharedTransitionApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun PlayerSheetContent(
     isWidescreen: Boolean,
@@ -95,6 +95,7 @@ fun PlayerSheetContent(
     isFavorite: Boolean,
     trackHistory: List<TrackHistoryEntity> = emptyList(),
     stationRecordings: List<com.armanmaurya.internetradio.data.repository.RecordingFile> = emptyList(),
+    retryCountdown: Int? = null,
     progress: Float, // 0.0 (collapsed) to 1.0 (expanded)
     onTogglePlayPause: () -> Unit,
     onToggleFavorite: () -> Unit,
@@ -324,7 +325,13 @@ fun PlayerSheetContent(
                         maxLines = 1,
                         modifier = Modifier.basicMarquee()
                     )
-                    val currentTrackText = if (playbackState.isLoading) stringResource(R.string.player_buffering) else playbackState.currentTrack ?: stringResource(R.string.player_no_track_data)
+                    val currentTrackText = if (retryCountdown != null) {
+                        stringResource(R.string.player_retrying_in, retryCountdown)
+                    } else if (playbackState.isLoading) {
+                        stringResource(R.string.player_buffering)
+                    } else {
+                        playbackState.currentTrack ?: stringResource(R.string.player_no_track_data)
+                    }
                     Text(
                         text = currentTrackText,
                         style = MaterialTheme.typography.bodySmall,
@@ -626,7 +633,13 @@ fun PlayerSheetContent(
 
                     val bufferingText = stringResource(R.string.player_buffering)
                     val noTrackDataText = stringResource(R.string.player_no_track_data)
-                    val displayTrack = if (playbackState.isLoading) bufferingText else playbackState.currentTrack ?: noTrackDataText
+                    val displayTrack = if (retryCountdown != null) {
+                        stringResource(R.string.player_retrying_in, retryCountdown!!)
+                    } else if (playbackState.isLoading) {
+                        bufferingText
+                    } else {
+                        playbackState.currentTrack ?: noTrackDataText
+                    }
                     val isSearchExpanded = searchDialogTrack != null
 
                     // Wrap in Box with invisible placeholder to prevent layout shift when pill hides

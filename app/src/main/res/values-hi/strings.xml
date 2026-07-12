@@ -60,6 +60,13 @@
     <string name="settings_auto_play">शुरू होने पर स्वतः चलाएँ</string>
     <string name="settings_auto_play_desc">ऐप शुरू होने पर पिछला सुना गया स्टेशन चलाएँ</string>
     <string name="settings_default_tab">शुरुआत में डिफ़ॉल्ट टैब</string>
+    <string name="settings_player_section">प्लेयर</string>
+    <string name="settings_max_retry_duration">पुनः प्रयास की अधिकतम अवधि</string>
+    <string name="settings_retry_1_min">1 मिनट</string>
+    <string name="settings_retry_5_min">5 मिनट</string>
+    <string name="settings_retry_15_min">15 मिनट</string>
+    <string name="settings_retry_30_min">30 मिनट</string>
+    <string name="settings_retry_indefinitely">अनिश्चित काल तक</string>
     <string name="settings_check_updates">अपडेट की जाँच करें</string>
     <string name="settings_rate_review">रेट और रिव्यू करें</string>
     <string name="settings_track_history_limit">ट्रैक इतिहास सीमा</string>
@@ -202,4 +209,6 @@
     <string name="player_no_tracks_played">अभी तक कोई ट्रैक नहीं बजाया गया</string>
     <string name="player_tab_about">हमारे बारे में</string>
     <string name="player_tab_tracks">ट्रैक</string>
+    <string name="player_retrying_in">%1$ds में पुनः प्रयास...</string>
+    <string name="player_retrying_connection">कनेक्शन पुनः प्रयास कर रहा है...</string>
 </resources>

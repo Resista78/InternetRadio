@@ -73,6 +73,7 @@ fun SettingsScreen(
     var languageExpanded by remember { mutableStateOf(false) }
     var showHistoryLimitDialog by remember { mutableStateOf(false) }
     var defaultTabExpanded by remember { mutableStateOf(false) }
+    var maxRetryDurationExpanded by remember { mutableStateOf(false) }
 
     Scaffold(
         modifier = Modifier.padding(bottom = contentPadding.calculateBottomPadding()),
@@ -105,8 +106,14 @@ fun SettingsScreen(
                 onSetHistoryLimit = viewModel::setTrackHistoryLimit,
                 defaultTabExpanded = defaultTabExpanded,
                 onToggleDefaultTabExpanded = { defaultTabExpanded = !defaultTabExpanded },
-                onSetDefaultTab = viewModel::setDefaultTab,
-                onSetAutoPlayOnStart = viewModel::setAutoPlayOnStart
+                onSetDefaultTab = viewModel::setDefaultTab
+            )
+            PlayerSection(
+                uiState = uiState,
+                onSetAutoPlayOnStart = viewModel::setAutoPlayOnStart,
+                maxRetryDurationExpanded = maxRetryDurationExpanded,
+                onToggleMaxRetryDurationExpanded = { maxRetryDurationExpanded = !maxRetryDurationExpanded },
+                onSetMaxRetryDuration = viewModel::setMaxRetryDuration
             )
             AboutSection(
                 onAboutClick = onAboutClick,
@@ -222,8 +229,7 @@ private fun GeneralSection(
     onSetHistoryLimit: (Int) -> Unit,
     defaultTabExpanded: Boolean,
     onToggleDefaultTabExpanded: () -> Unit,
-    onSetDefaultTab: (Int) -> Unit,
-    onSetAutoPlayOnStart: (Boolean) -> Unit
+    onSetDefaultTab: (Int) -> Unit
 ) {
     val currentLocales = AppCompatDelegate.getApplicationLocales()
     val activeLanguageCode = if (currentLocales.isEmpty) {
@@ -250,14 +256,6 @@ private fun GeneralSection(
         }
 
         val tabs = listOf(stringResource(R.string.home_tab_browse), stringResource(R.string.home_tab_recent), stringResource(R.string.home_tab_library))
-        
-        ToggleItem(
-            title = stringResource(R.string.settings_auto_play),
-            subtitle = stringResource(R.string.settings_auto_play_desc),
-            isEnabled = uiState.autoPlayOnStart,
-            onToggle = onSetAutoPlayOnStart,
-            icon = Icons.Default.PlayArrow
-        )
 
         ExpandableItem(
             title = stringResource(R.string.settings_default_tab),
@@ -317,6 +315,50 @@ private fun GeneralSection(
                     }
                 }
             )
+        }
+    }
+}
+
+@Composable
+private fun PlayerSection(
+    uiState: AppPreferences,
+    onSetAutoPlayOnStart: (Boolean) -> Unit,
+    maxRetryDurationExpanded: Boolean,
+    onToggleMaxRetryDurationExpanded: () -> Unit,
+    onSetMaxRetryDuration: (Long) -> Unit
+) {
+    Section(title = stringResource(R.string.settings_player_section)) {
+        ToggleItem(
+            title = stringResource(R.string.settings_auto_play),
+            subtitle = stringResource(R.string.settings_auto_play_desc),
+            isEnabled = uiState.autoPlayOnStart,
+            onToggle = onSetAutoPlayOnStart,
+            icon = Icons.Default.PlayArrow
+        )
+
+        val retryOptions = listOf(
+            60_000L to stringResource(R.string.settings_retry_1_min),
+            300_000L to stringResource(R.string.settings_retry_5_min),
+            900_000L to stringResource(R.string.settings_retry_15_min),
+            1_800_000L to stringResource(R.string.settings_retry_30_min),
+            -1L to stringResource(R.string.settings_retry_indefinitely)
+        )
+        val currentRetryOption = retryOptions.find { it.first == uiState.maxRetryDuration }?.second ?: stringResource(R.string.settings_retry_5_min)
+
+        ExpandableItem(
+            title = stringResource(R.string.settings_max_retry_duration),
+            subtitle = currentRetryOption,
+            isExpanded = maxRetryDurationExpanded,
+            onToggle = onToggleMaxRetryDurationExpanded,
+            icon = Icons.Default.Update
+        ) {
+            retryOptions.forEach { (duration, label) ->
+                OptionItem(
+                    label = label,
+                    isSelected = uiState.maxRetryDuration == duration,
+                    onClick = { onSetMaxRetryDuration(duration) }
+                )
+            }
         }
     }
 }

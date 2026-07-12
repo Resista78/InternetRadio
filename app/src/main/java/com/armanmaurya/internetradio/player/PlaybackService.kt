@@ -39,8 +39,16 @@ class PlaybackService : MediaLibraryService() {
     @Inject
     lateinit var recordingManager: RecordingManager
 
+    @Inject
+    lateinit var retryStateTracker: RetryStateTracker
+
+    @Inject
+    lateinit var settingsRepository: com.armanmaurya.internetradio.data.repository.SettingsRepository
+
     private var player: Player? = null
     private var mediaLibrarySession: MediaLibrarySession? = null
+    private lateinit var loadErrorHandlingPolicy: ExponentialBackoffLoadErrorHandlingPolicy
+
     
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
@@ -89,12 +97,34 @@ class PlaybackService : MediaLibraryService() {
     override fun onCreate() {
         super.onCreate()
 
+        loadErrorHandlingPolicy = ExponentialBackoffLoadErrorHandlingPolicy(retryStateTracker)
+        
+        serviceScope.launch {
+            settingsRepository.appPreferencesFlow.collect { prefs ->
+                loadErrorHandlingPolicy.maxRetryDurationMs = prefs.maxRetryDuration
+            }
+        }
+
+        var retryToast: android.widget.Toast? = null
+        serviceScope.launch(kotlinx.coroutines.Dispatchers.Main) {
+            retryStateTracker.retryToastEvent.collect {
+                retryToast?.cancel()
+                retryToast = android.widget.Toast.makeText(
+                    this@PlaybackService,
+                    getString(com.armanmaurya.internetradio.R.string.player_retrying_connection),
+                    android.widget.Toast.LENGTH_SHORT
+                )
+                retryToast?.show()
+            }
+        }
+
         val dataSourceFactory = DefaultHttpDataSource.Factory()
             .setAllowCrossProtocolRedirects(true)
             .setDefaultRequestProperties(mapOf("Icy-MetaData" to "1"))
 
         val mediaSourceFactory = DefaultMediaSourceFactory(this)
             .setDataSourceFactory(dataSourceFactory)
+            .setLoadErrorHandlingPolicy(loadErrorHandlingPolicy)
 
         val renderersFactory = object : DefaultRenderersFactory(this) {
             override fun buildAudioSink(
@@ -124,12 +154,23 @@ class PlaybackService : MediaLibraryService() {
                 // Only reset if we are actually paused. This prevents interrupting 
                 // playback if a redundant play() command is received.
                 if (item != null && !playWhenReady) {
+                    retryStateTracker.reset()
                     // Seeking to the default position (the live edge) forces ExoPlayer 
                     // to discard the stale buffer and reconnect.
                     seekToDefaultPosition()
                     prepare()
                 }
                 super.play()
+            }
+            
+            override fun pause() {
+                retryStateTracker.reset()
+                super.pause()
+            }
+            
+            override fun stop() {
+                retryStateTracker.reset()
+                super.stop()
             }
         }
 

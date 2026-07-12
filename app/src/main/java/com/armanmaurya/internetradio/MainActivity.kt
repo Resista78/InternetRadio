@@ -29,6 +29,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -39,6 +40,7 @@ import com.armanmaurya.internetradio.data.repository.SettingsRepository
 import com.armanmaurya.internetradio.ui.mobile.navigation.AppNavHost
 import com.armanmaurya.internetradio.ui.mobile.navigation.AppDestination
 import com.armanmaurya.internetradio.ui.mobile.screens.player.PlayerSheetContent
+import android.widget.Toast
 import com.armanmaurya.internetradio.ui.shared.viewmodels.PlayerViewModel
 import com.armanmaurya.internetradio.ui.shared.theme.InternetRadioTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -200,6 +202,8 @@ class MainActivity : AppCompatActivity() {
                             val isRecording by playerViewModel.isRecording.collectAsStateWithLifecycle()
                             val recordingDuration by playerViewModel.recordingDuration.collectAsStateWithLifecycle()
                             val amplitude by playerViewModel.amplitude.collectAsStateWithLifecycle()
+                            val retryCountdown by playerViewModel.retryCountdown.collectAsStateWithLifecycle()
+                            val localContext = LocalContext.current
 
                             PlayerSheetContent(
                                 isWidescreen = isExpanded,
@@ -207,6 +211,7 @@ class MainActivity : AppCompatActivity() {
                                 isFavorite = isFavorite,
                                 trackHistory = trackHistory,
                                 stationRecordings = stationRecordings,
+                                retryCountdown = retryCountdown,
                                 progress = progress,
                                 onTogglePlayPause = playerViewModel::togglePlayPause,
                                 onToggleFavorite = playerViewModel::toggleFavorite,

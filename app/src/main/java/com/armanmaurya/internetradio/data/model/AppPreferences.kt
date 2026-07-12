@@ -23,5 +23,6 @@ data class AppPreferences(
     val isGridViewAdded: Boolean = true,
     val trackHistoryLimit: Int = 50,
     val defaultTab: Int = 0,
-    val lastUpdateCheckTime: Long = 0L
+    val lastUpdateCheckTime: Long = 0L,
+    val maxRetryDuration: Long = 300_000L
 )

@@ -73,4 +73,10 @@ class SettingsViewModel @Inject constructor(
             settingsRepository.setDefaultTab(tabIndex)
         }
     }
+
+    fun setMaxRetryDuration(durationInMillis: Long) {
+        viewModelScope.launch {
+            settingsRepository.setMaxRetryDuration(durationInMillis)
+        }
+    }
 }
