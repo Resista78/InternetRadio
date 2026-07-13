@@ -54,6 +54,12 @@
             </intent-filter>
         </activity>
 
+        <provider
+            android:name=".player.SvgProxyProvider"
+            android:authorities="com.armanmaurya.internetradio.svgproxy"
+            android:exported="true"
+            android:grantUriPermissions="true" />
+
         <!--
             exported="true" is required so the Android Auto host process can
             bind to the service. MediaBrowserService intent-filter lets Auto

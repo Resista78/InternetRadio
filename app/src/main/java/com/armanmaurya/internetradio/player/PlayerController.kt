@@ -344,13 +344,20 @@ class PlayerController @Inject constructor(
     }
     
     private fun RadioStation.toMediaItem(): MediaItem {
+        val artworkUriStr = if (favicon.endsWith(".svg", ignoreCase = true)) {
+            SvgProxyProvider.createProxyUri(favicon)
+        } else {
+            favicon.takeIf { it.isNotBlank() }
+        }
+        val artworkUri = artworkUriStr?.let { android.net.Uri.parse(it) } ?: android.net.Uri.EMPTY
+
         return MediaItem.Builder()
             .setMediaId(this.stationUuid)
             .setUri(this.urlResolved)
             .setMediaMetadata(
                 MediaMetadata.Builder()
                     .setTitle(this.name)
-                    .setArtworkUri(android.net.Uri.parse(this.favicon))
+                    .setArtworkUri(artworkUri)
                     .build()
             )
             .setTag(this)

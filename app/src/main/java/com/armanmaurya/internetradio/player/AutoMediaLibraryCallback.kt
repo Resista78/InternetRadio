@@ -467,12 +467,14 @@ private val APP_LOGO_URI: Uri =
     Uri.parse("android.resource://com.armanmaurya.internetradio/mipmap/ic_launcher")
 
 fun RadioStation.toMediaItem(parentId: String? = null): MediaItem {
-    // Use the station favicon if present, otherwise fall back to the app logo so
-    // Android Auto grid cards always show meaningful artwork instead of a
-    // generic music-note placeholder.
-    val artworkUri = favicon.takeIf { it.isNotBlank() }
-        ?.let { Uri.parse(it) }
-        ?: APP_LOGO_URI
+    // Use the station favicon if present. If it's an SVG, proxy it through our SvgProxyProvider 
+    // so Android Auto can receive it as a PNG stream. Otherwise fall back to the app logo.
+    val artworkUriStr = if (favicon.endsWith(".svg", ignoreCase = true)) {
+        SvgProxyProvider.createProxyUri(favicon)
+    } else {
+        favicon.takeIf { it.isNotBlank() }
+    }
+    val artworkUri = artworkUriStr?.let { Uri.parse(it) } ?: APP_LOGO_URI
 
     val id = if (parentId != null) "$parentId|$stationUuid" else stationUuid
 

@@ -186,6 +186,7 @@ class PlaybackService : MediaLibraryService() {
             )
             mediaLibrarySession = MediaLibrarySession.Builder(this, it, autoCallback)
                 .setSessionActivity(pendingIntent)
+                .setBitmapLoader(CoilBitmapLoader(this))
                 .build()
 
             // Give the callback a reference to the session so it can push
