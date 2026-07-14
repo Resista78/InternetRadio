@@ -104,29 +104,46 @@ class CastController @Inject constructor(
         
         val metadata = if (title != null) org.fcast.sender_sdk.Metadata(title, thumbnailUrl ?: "") else null
 
-        _connectedDevice.value?.load(
-            LoadRequest.Url(
-                contentType = contentType,
-                url = url,
-                resumePosition = resumePosition,
-                speed = null,
-                volume = null,
-                metadata = metadata,
-                requestHeaders = null
+        try {
+            _connectedDevice.value?.load(
+                LoadRequest.Url(
+                    contentType = contentType,
+                    url = url,
+                    resumePosition = resumePosition,
+                    speed = null,
+                    volume = null,
+                    metadata = metadata,
+                    requestHeaders = null
+                )
             )
-        )
+        } catch (e: Exception) {
+            Log.e("CastController", "Load failed: ${e.message}")
+            disconnect()
+        }
     }
 
     fun play() {
-        _connectedDevice.value?.resumePlayback()
+        try {
+            _connectedDevice.value?.resumePlayback()
+        } catch (e: Exception) {
+            disconnect()
+        }
     }
 
     fun pause() {
-        _connectedDevice.value?.pausePlayback()
+        try {
+            _connectedDevice.value?.pausePlayback()
+        } catch (e: Exception) {
+            disconnect()
+        }
     }
 
     fun stop() {
-        _connectedDevice.value?.stopPlayback()
+        try {
+            _connectedDevice.value?.stopPlayback()
+        } catch (e: Exception) {
+            disconnect()
+        }
     }
 
     fun seek(time: Double) {
@@ -156,10 +173,8 @@ class CastController @Inject constructor(
                     )
                     pendingLoadUrl = null
                 }
-            } else if (state is DeviceConnectionState.Disconnected) {
-                 if (_connectedDevice.value == device) {
-                     _connectedDevice.value = null
-                 }
+            } else if (state !is DeviceConnectionState.Connecting) {
+                 disconnect()
             }
         }
 

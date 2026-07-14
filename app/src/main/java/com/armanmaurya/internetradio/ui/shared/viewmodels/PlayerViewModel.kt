@@ -88,6 +88,20 @@ class PlayerViewModel @Inject constructor(
                 )
             }
         }.launchIn(viewModelScope)
+        
+        var wasCasting = false
+        connectedCastDevice
+            .onEach { device ->
+                val isCasting = device != null
+                if (wasCasting && !isCasting) {
+                    val station = playbackState.value.currentStation
+                    if (station != null) {
+                        playerController.play(listOf(station), 0, playWhenReady = true)
+                    }
+                }
+                wasCasting = isCasting
+            }
+            .launchIn(viewModelScope)
     }
 
     private fun handlePlaybackFailure() {
