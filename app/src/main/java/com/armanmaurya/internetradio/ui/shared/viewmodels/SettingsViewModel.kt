@@ -71,6 +71,12 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    fun setStopOnAudioBecomingNoisy(enabled: Boolean) {
+        viewModelScope.launch {
+            settingsRepository.setStopOnAudioBecomingNoisy(enabled)
+        }
+    }
+
     fun setAppLanguage(language: String) {
         viewModelScope.launch {
             settingsRepository.setAppLanguage(language)

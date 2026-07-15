@@ -1,7 +1,11 @@
 package com.armanmaurya.internetradio.player
 
 import android.app.PendingIntent
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
+import android.media.AudioManager
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
@@ -48,6 +52,18 @@ class PlaybackService : MediaLibraryService() {
     private var player: Player? = null
     private var mediaLibrarySession: MediaLibrarySession? = null
     private lateinit var loadErrorHandlingPolicy: ExponentialBackoffLoadErrorHandlingPolicy
+    
+    private var stopOnAudioBecomingNoisy: Boolean = true
+    
+    private val audioNoisyReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == AudioManager.ACTION_AUDIO_BECOMING_NOISY) {
+                if (stopOnAudioBecomingNoisy) {
+                    player?.pause()
+                }
+            }
+        }
+    }
 
     
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
@@ -102,6 +118,7 @@ class PlaybackService : MediaLibraryService() {
         serviceScope.launch {
             settingsRepository.appPreferencesFlow.collect { prefs ->
                 loadErrorHandlingPolicy.maxRetryDurationMs = prefs.maxRetryDuration
+                stopOnAudioBecomingNoisy = prefs.stopOnAudioBecomingNoisy
             }
         }
 
@@ -142,8 +159,9 @@ class PlaybackService : MediaLibraryService() {
             .setRenderersFactory(renderersFactory)
             .setMediaSourceFactory(mediaSourceFactory)
             .setAudioAttributes(audioAttributes, true)
-            .setHandleAudioBecomingNoisy(true)
             .build()
+            
+        registerReceiver(audioNoisyReceiver, IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY))
 
         player = object : androidx.media3.common.ForwardingPlayer(exoPlayer) {
             override fun play() {
@@ -203,6 +221,11 @@ class PlaybackService : MediaLibraryService() {
         serviceScope.cancel()
         // Clear session ref first so the callback stops pushing updates
         autoCallback.activeSession = null
+        try {
+            unregisterReceiver(audioNoisyReceiver)
+        } catch (e: Exception) {
+            // Ignored
+        }
         mediaLibrarySession?.run {
             player.removeListener(stationChangeListener)
             player.release()

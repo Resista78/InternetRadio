@@ -56,6 +56,7 @@ class SettingsRepository @Inject constructor(
         val LAST_UPDATE_CHECK_TIME = androidx.datastore.preferences.core.longPreferencesKey("last_update_check_time")
         val MAX_RETRY_DURATION = androidx.datastore.preferences.core.longPreferencesKey("max_retry_duration")
         val CONFLICT_STRATEGY = stringPreferencesKey("conflict_strategy")
+        val STOP_ON_AUDIO_BECOMING_NOISY = booleanPreferencesKey("stop_on_audio_becoming_noisy")
     }
 
     val appPreferencesFlow: Flow<AppPreferences> = context.dataStore.data
@@ -76,6 +77,7 @@ class SettingsRepository @Inject constructor(
             val selectedCountryCode = preferences[PreferencesKeys.SELECTED_COUNTRY_CODE]
             val selectedLanguage = preferences[PreferencesKeys.SELECTED_LANGUAGE]
             val selectedTags = preferences[PreferencesKeys.SELECTED_TAGS] ?: emptySet()
+            val stopOnAudioBecomingNoisy = preferences[PreferencesKeys.STOP_ON_AUDIO_BECOMING_NOISY] ?: true
             val order = preferences[PreferencesKeys.SORT_ORDER] ?: "votes"
             val reverse = preferences[PreferencesKeys.SORT_REVERSE] ?: true
             val useFilterOnRecent = preferences[PreferencesKeys.USE_FILTER_ON_RECENT] ?: false
@@ -102,6 +104,7 @@ class SettingsRepository @Inject constructor(
                 selectedCountryCode = selectedCountryCode,
                 selectedLanguage = selectedLanguage,
                 selectedTags = selectedTags,
+                stopOnAudioBecomingNoisy = stopOnAudioBecomingNoisy,
                 order = order,
                 reverse = reverse,
                 useFilterOnRecent = useFilterOnRecent,
@@ -127,6 +130,10 @@ class SettingsRepository @Inject constructor(
 
     suspend fun setAutoPlayOnStart(enabled: Boolean) {
         context.dataStore.edit { it[PreferencesKeys.AUTO_PLAY_ON_START] = enabled }
+    }
+
+    suspend fun setStopOnAudioBecomingNoisy(enabled: Boolean) {
+        context.dataStore.edit { it[PreferencesKeys.STOP_ON_AUDIO_BECOMING_NOISY] = enabled }
     }
 
     suspend fun setUseFilterOnFavorites(enabled: Boolean) {

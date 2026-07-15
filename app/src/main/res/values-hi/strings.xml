@@ -61,6 +61,8 @@
     <string name="settings_auto_play_desc">ऐप शुरू होने पर पिछला सुना गया स्टेशन चलाएँ</string>
     <string name="settings_default_tab">शुरुआत में डिफ़ॉल्ट टैब</string>
     <string name="settings_player_section">प्लेयर</string>
+    <string name="settings_stop_on_audio_noisy">डिवाइस डिस्कनेक्ट होने पर रोकें</string>
+    <string name="settings_stop_on_audio_noisy_desc">ब्लूटूथ या वायर्ड हेडफ़ोन के डिस्कनेक्ट होने पर प्लेबैक रोकें</string>
     <string name="settings_max_retry_duration">पुनः प्रयास की अधिकतम अवधि</string>
     <string name="settings_retry_1_min">1 मिनट</string>
     <string name="settings_retry_5_min">5 मिनट</string>
