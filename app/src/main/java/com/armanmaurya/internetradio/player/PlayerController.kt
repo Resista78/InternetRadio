@@ -319,6 +319,10 @@ class PlayerController @Inject constructor(
         }
     }
 
+    fun setVolume(volume: Float) {
+        controller?.volume = volume
+    }
+
     fun stop() {
         val player = controller ?: return
         player.stop()

@@ -93,7 +93,9 @@ class PlayerViewModel @Inject constructor(
         connectedCastDevice
             .onEach { device ->
                 val isCasting = device != null
+                if (isCasting) playerController.setVolume(0f)
                 if (wasCasting && !isCasting) {
+                    playerController.setVolume(1f)
                     val station = playbackState.value.currentStation
                     if (station != null) {
                         playerController.play(listOf(station), 0, playWhenReady = true)
@@ -195,7 +197,7 @@ class PlayerViewModel @Inject constructor(
             stations = stations,
             startIndex = startIndex,
             source = source,
-            playWhenReady = connectedCastDevice.value == null
+            playWhenReady = true
         )
         viewModelScope.launch {
             recentRepository.addRecentStation(station)
@@ -217,8 +219,13 @@ class PlayerViewModel @Inject constructor(
             val stateName = state.toString().uppercase()
             if (stateName.contains("PLAY") || stateName.contains("BUFFER")) {
                 castController.pause()
+                playerController.pause()
             } else {
                 castController.play()
+                val station = playbackState.value.currentStation
+                if (station != null) {
+                    playerController.play(listOf(station), 0, playWhenReady = true)
+                }
             }
         } else {
             playerController.togglePlayPause()
@@ -242,11 +249,12 @@ class PlayerViewModel @Inject constructor(
 
     fun connectToCastDevice(deviceInfo: DeviceInfo) {
         castController.connectToDevice(deviceInfo)
-        playerController.pause()
+        playerController.setVolume(0f)
     }
 
     fun disconnectCastDevice() {
         castController.disconnect()
+        playerController.setVolume(1f)
         val station = playbackState.value.currentStation
         if (station != null) {
             playerController.play(listOf(station), 0)
