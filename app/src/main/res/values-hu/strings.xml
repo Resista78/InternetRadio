@@ -74,7 +74,7 @@
     <string name="settings_number_of_tracks">Számok száma</string>
     <string name="settings_checking_for_updates">Frissítések keresése...</string>
     <string name="settings_no_update_available">Nincs elérhető frissítés</string>
-    <string name="settings_theme_system"Rrendszer alapértelmezett</string>
+    <string name="settings_theme_system">Rrendszer alapértelmezett</string>
 
     <!-- ========================================== -->
     <!-- 6b. BACKUP & RESTORE                       -->
