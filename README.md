@@ -6,6 +6,8 @@
 
 InternetRadio is an Android app for discovering and listening to radio stations from around the world, with features like favorites, recent history, and advanced search by country,language and tags.
 
+> **Looking for a logo designer!** If you are a designer and would like to contribute a new logo or icon for the app, please open an issue
+
 </div>
 
 ---
@@ -17,8 +19,10 @@ InternetRadio is an Android app for discovering and listening to radio stations 
 - **Library & Customization**: Manage station Library. Edit any station and configure the startup screen.
 - **Android TV Support**: Enjoy a fully optimized and tailored experience on Android TV devices.
 - **Android Auto Support**: Support for car screen via android auto.
+- **FCast Support**: Cast and control radio stations on FCast-compatible devices.
 - **Recent History**: Keep track of your recently played streams.
-- **Modern UI**: Built with Jetpack Compose for a smooth, intuitive, and responsive experience.
+- **Backup & Restore**: Easily backup and restore your library and app settings.
+- **Modern UI**: Built with Jetpack Compose for a smooth, intuitive, and responsive experience across phones, tablets, and widescreen devices.
 
 ## Screenshots
 
@@ -64,6 +68,7 @@ InternetRadio uses the following open-source libraries:
 - [Android Jetpack Libraries](https://developer.android.com/jetpack) (Compose, Room, Media3, Lifecycle, Navigation, DataStore, etc.)
 - [Hilt](https://developer.android.com/training/dependency-injection/hilt-android) - A dependency injection library for Android.
 - [Radio Browser API](https://www.radio-browser.info/) - A community-driven effort to collect radio stations.
+- [FCast](https://fcast.org/) - An open-source protocol for wireless streaming.
 
 ## License
 
