@@ -61,7 +61,7 @@
     <string name="settings_auto_play_desc">Az utoljára hallgatott állomás lejátszása az alkalmazás indításakor</string>
     <string name="settings_default_tab">Alapértelmezett lap indításkor</string>
     <string name="settings_player_section">Lejátszó</string>
-    string name="settings_stop_on_audio_noisy">Szüneteltetés eszköz leválasztásakor</string>
+    <string name="settings_stop_on_audio_noisy">Szüneteltetés eszköz leválasztásakor</string>
     <string name="settings_stop_on_audio_noisy_desc">A lejátszás szüneteltetése Bluetooth- vagy vezetékes fejhallgató leválasztásakor</string>
     <string name="settings_max_retry_duration">Maximális újrapróbálkozási időtartam</string>
     <string name="settings_retry_1_min">1 perc</string>
